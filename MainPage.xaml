@@ -451,9 +451,6 @@
         </HorizontalStackLayout>
         
         <!-- Results Area -->
-        <!--<Button x:Name="ResultLabel"
-                Text="Results will appear here"
-                HorizontalOptions="Center"/>-->
         <Label x:Name="ResultLabel"
                Text="Results will appear here"
                HorizontalOptions="Center"/>

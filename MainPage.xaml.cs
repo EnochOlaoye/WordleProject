@@ -23,15 +23,6 @@ namespace Wordle
             // Increment attempt counter
             count++;
 
-            // Retrieve text from each Entry control in the first row
-            // The '?' operator safely handles null values in the chain of operations
-            // Trim() removes any whitespace before and after the text
-            //string letter1 = Row1Letter1?.Text?.Trim() ?? "";
-            //string letter2 = Row1Letter2?.Text?.Trim() ?? "";
-            //string letter3 = Row1Letter3?.Text?.Trim() ?? "";
-            //string letter4 = Row1Letter4?.Text?.Trim() ?? "";
-            //string letter5 = Row1Letter5?.Text?.Trim() ?? "";
-
             // Get the current row's letters based on attempt count
             string letter1 = GetEntryText($"Row{count}Letter1");
             string letter2 = GetEntryText($"Row{count}Letter2");
@@ -71,22 +62,6 @@ namespace Wordle
         // Event handler that triggers whenever text changes in an Entry control
         private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            // Check if the sender is an Entry control
-            /*if (sender is Entry entry)
-            {
-                // Convert input to uppercase, handling null values
-                // If NewTextValue is null or empty, use empty string; otherwise convert to upper case
-                string input = string.IsNullOrEmpty(e.NewTextValue) ? "" : e.NewTextValue.ToUpper();
-
-                // Validate that the first character (if any) is a letter
-                // If not, clear the Entry control
-                if (input.Length > 0 && !char.IsLetter(input[0]))
-                {
-                    entry.Text = "";
-                    return;
-                }
-            }*/
-
             // Cast sender to Entry at the beginning of the method
             if (sender is not Entry entry)
                 return;
@@ -147,8 +122,6 @@ namespace Wordle
                                 .Where(w => w.Length == 5)
                                 .ToList();
 
-                // You might want to show a message when words are loaded
-                //ResultLabel.Text = $"Ready to play! ({wordList.Count} words loaded)";
                 // You might want to show a message when words are loaded
                 if (wordList.Count > 0)
                 {
