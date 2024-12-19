@@ -7,299 +7,464 @@
 
         <!-- First Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row1Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border1Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row1Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
-                       BackgroundColor="Transparent"/>
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row1Letter2" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border1Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row1Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
-                       BackgroundColor="Transparent"/>
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row1Letter3" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border1Letter3" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row1Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
-                       BackgroundColor="Transparent"/>
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row1Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border1Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row1Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
-                       BackgroundColor="Transparent"/>
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row1Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border1Letter5" StrokeThickness="2" Stroke="Gray" 
               WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row1Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
-                       BackgroundColor="Transparent"/>
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
 
         <!-- Second Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row2Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border2Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row2Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row2Letter2" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border2Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row2Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row2Letter3" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border2Letter3" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row2Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row2Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border2Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row2Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row2Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border2Letter5" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row2Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
 
 
         <!-- Thrid Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row3Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border3Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row3Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row3Letter2" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border3Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row3Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row3Letter3" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border3Letter3" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row3Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row3Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border3Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row3Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row3Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border3Letter5" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row3Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
 
         <!-- Fourth Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row4Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border4Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row4Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row4Letter2" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border4Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row4Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row4Letter3" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border4Letter3" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row4Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row4Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border4Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row4Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row4Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border4Letter5" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row4Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
 
         <!-- Fifth Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row5Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border5Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row5Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row5Letter2" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border5Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row5Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row5Letter3" StrokeThickness="2" Stroke="Gray"
+            <Border x:Name="Border5Letter3" StrokeThickness="2" Stroke="Gray"
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row5Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row5Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border5Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row5Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row5Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border5Letter5" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row5Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
 
         <!-- Sixth Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Border x:Name="Row6Letter1" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border6Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
-                       HorizontalTextAlignment="Center"     
-                       VerticalTextAlignment="Center"
-                       FontSize="24"
-                       BackgroundColor="Transparent"
-                       IsEnabled="False"/>
-            </Border>
-            <Border x:Name="Row6Letter2" StrokeThickness="2" Stroke="Gray" 
-                    WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row6Letter1"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row6Letter3" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border6Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row6Letter2"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row6Letter4" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border6Letter3" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row6Letter3"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
             </Border>
-            <Border x:Name="Row6Letter5" StrokeThickness="2" Stroke="Gray" 
+            <Border x:Name="Border6Letter4" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
-                <Entry MaxLength="1" 
+                <Entry x:Name="Row6Letter4"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
                        HorizontalTextAlignment="Center" 
                        VerticalTextAlignment="Center"
                        FontSize="24"
                        BackgroundColor="Transparent"
-                       IsEnabled="False"/>
+                       WidthRequest="40"/>
+            </Border>
+            <Border x:Name="Border6Letter5" StrokeThickness="2" Stroke="Gray" 
+                    WidthRequest="60" HeightRequest="60">
+                <Entry x:Name="Row6Letter5"
+                       MaxLength="1" 
+                       TextChanged="OnTextChanged"
+                       IsEnabled="True"
+                       Focused="OnEntryFocused"
+                       Completed="OnEntryCompleted"
+                       HorizontalTextAlignment="Center" 
+                       VerticalTextAlignment="Center"
+                       FontSize="24"
+                       BackgroundColor="Transparent"
+                       WidthRequest="40"/>
             </Border>
         </HorizontalStackLayout>
         
         <!-- Results Area -->
-        <Button x:Name="ResultLabel"
+        <!--<Button x:Name="ResultLabel"
                 Text="Results will appear here"
+                HorizontalOptions="Center"/>-->
+        <Label x:Name="ResultLabel"
+               Text="Results will appear here"
+               HorizontalOptions="Center"/>
+
+        <!-- Add a separate Submit button if needed -->
+        <Button x:Name="SubmitButton"
+                Text="Submit"
+                Clicked="OnSubmitGuessClicked"
                 HorizontalOptions="Center"/>
-                
+
+
     </VerticalStackLayout>
 
 </ContentPage>
