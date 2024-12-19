@@ -10,12 +10,84 @@ namespace Wordle
         private List<string> wordList;
         private const string WordsFileName = "words.txt";
         private const string WordsUrl = "https://raw.githubusercontent.com/DonH-ITS/jsonfiles/main/words.txt";
+        private bool isDarkMode;
+        private readonly Color darkModeBackground = Colors.Black;
+        private readonly Color darkModeForeground = Colors.White;
+        private readonly Color lightModeBackground = Colors.White;
+        private readonly Color lightModeForeground = Colors.Black;
 
         public MainPage()
         {
             InitializeComponent();
             LoadWordsAsync();
+
+            // Initialize theme based on system preference
+            isDarkMode = Application.Current?.RequestedTheme == AppTheme.Dark;
+            ApplyTheme();
         }
+
+        private void OnThemeToggleClicked(object sender, EventArgs e)
+        {
+            isDarkMode = !isDarkMode;
+            ApplyTheme();
+        }
+
+        private void ApplyTheme()
+        {
+            // Set the background and text colors for the page
+            BackgroundColor = isDarkMode ? darkModeBackground : lightModeBackground;
+
+            // Update all Entry controls
+            foreach (var entry in GetAllEntries())
+            {
+                entry.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
+                entry.BackgroundColor = Colors.Transparent;
+            }
+
+            // Update all Borders
+            foreach (var border in GetAllBorders())
+            {
+                border.Stroke = isDarkMode ? darkModeForeground : Colors.Gray;
+            }
+
+            // Update other UI elements
+            ResultLabel.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
+            SubmitButton.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
+
+            // Update theme toggle button (if you have an icon)
+            ThemeToggleButton.Source = isDarkMode ? "lightbulb_on.png" : "lightbulb.png";
+        }
+
+        private IEnumerable<Entry> GetAllEntries()
+        {
+            // Helper method to find all Entry controls
+            var entries = new List<Entry>();
+            for (int row = 1; row <= 6; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = FindByName<Entry>($"Row{row}Letter{col}");
+                    if (entry != null)
+                        entries.Add(entry);
+                }
+            }
+            return entries;
+        }
+
+        private IEnumerable<Border> GetAllBorders()
+        {
+            // Helper method to find all Border controls
+            var borders = new List<Border>();
+            for (int row = 1; row <= 6; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var border = FindByName<Border>($"Border{row}Letter{col}");
+                    if (border != null)
+                        borders.Add(border);
+                }
+            }
+            return borders;
 
         // Event handler that triggers when the user clicks the Submit button
         private void OnSubmitGuessClicked(object sender, EventArgs e)

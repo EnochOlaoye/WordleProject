@@ -4,7 +4,13 @@
              x:Class="Wordle.MainPage">
 
     <VerticalStackLayout Spacing="10" Padding="20">
-
+        <HorizontalStackLayout HorizontalOptions="End" Padding="0,0,0,10">
+            <ImageButton x:Name="ThemeToggleButton"
+                        Clicked="OnThemeToggleClicked"
+                        WidthRequest="30"
+                        HeightRequest="30"
+                        Source="lightbulb.png"/>
+        </HorizontalStackLayout>
         <!-- First Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
             <Border x:Name="Border1Letter1" StrokeThickness="2" Stroke="Gray" 
