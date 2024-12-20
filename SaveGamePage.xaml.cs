@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Wordle;
 
@@ -67,6 +68,10 @@ public partial class SaveGamePage : ContentPage
         // Update theme button
         ThemeButton.Source = MainPage.IsDarkMode ? "lightbulb.png" : "darkbulb.png";
 
+        // Add history label to theme
+        HistoryLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
+
+
         System.Diagnostics.Debug.WriteLine("Theme applied to all elements");
     }
 
@@ -78,6 +83,9 @@ public partial class SaveGamePage : ContentPage
         GamesWonLabel.Text = save.GamesWon.ToString();
         CurrentStreakLabel.Text = save.CurrentStreak.ToString();
         MaxStreakLabel.Text = save.MaxStreak.ToString();
+
+        // Load history
+        HistoryList.ItemsSource = save.GameHistory.OrderByDescending(h => h.Timestamp);
     }
 
     private async void OnBackToGameClicked(object sender, EventArgs e)

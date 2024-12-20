@@ -161,7 +161,7 @@ namespace Wordle
         private string GetEntryText(string entryName)
         {
             var entry = this.FindByName<Entry>(entryName);
-            return entry?.Text?.Trim() ?? "";
+            return entry?.Text ?? "";
         }
 
         // Event handler that triggers whenever text changes in an Entry control
@@ -411,7 +411,8 @@ namespace Wordle
         private void EndGame(bool won)
         {
             var save = SaveGame.Load();
-            save.UpdateGame(won, count);
+
+            save.UpdateStats(won, count);
 
             if (won)
             {
@@ -424,9 +425,43 @@ namespace Wordle
             DisableAllEntries();
         }
 
+        private List<string> GetGuessHistory()
+        {
+            var history = new List<string>();
+            for (int row = 1; row <= count; row++)
+            {
+                string guess = GetEntryText($"Row{row}Letter1") +
+                              GetEntryText($"Row{row}Letter2") +
+                              GetEntryText($"Row{row}Letter3") +
+                              GetEntryText($"Row{row}Letter4") +
+                              GetEntryText($"Row{row}Letter5");
+                history.Add(guess.ToUpper());
+            }
+            return history;
+        }
+
         private async void OnViewProgressClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new SaveGamePage());
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("View Progress clicked");
+                if (Navigation != null)
+                {
+                    var savePage = new SaveGamePage();
+                    await Navigation.PushAsync(savePage);
+                    System.Diagnostics.Debug.WriteLine("Navigation completed");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Navigation is null");
+                    await DisplayAlert("Error", "Navigation not available", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
+                await DisplayAlert("Error", $"Navigation failed: {ex.Message}", "OK");
+            }
         }
     }
 

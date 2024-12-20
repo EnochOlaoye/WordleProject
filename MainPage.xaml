@@ -490,7 +490,8 @@
 
             <Button Text="View Progress"
                 Clicked="OnViewProgressClicked"
-                HorizontalOptions="Center"/>
+                HorizontalOptions="Center"
+                Margin="10"/>
 
         </StackLayout>
     </VerticalStackLayout>

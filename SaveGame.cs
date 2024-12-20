@@ -15,6 +15,7 @@ namespace Wordle
         public int CurrentStreak { get; set; }
         public int MaxStreak { get; set; }
         public Dictionary<int, int> GuessDistribution { get; set; }
+        public List<GameAttempt> GameHistory { get; set; } = new List<GameAttempt>();
 
         // Calculate win percentage
         public double WinPercentage => GamesPlayed > 0 ? (double)GamesWon / GamesPlayed * 100 : 0;
@@ -23,6 +24,7 @@ namespace Wordle
         public SaveGame()
         {
             GuessDistribution = new Dictionary<int, int>();
+            GameHistory = new List<GameAttempt>();
         }
 
         // Load saved game data from device storage
@@ -33,18 +35,28 @@ namespace Wordle
             {
                 return new SaveGame();
             }
-            return JsonSerializer.Deserialize<SaveGame>(saveJson);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+            return JsonSerializer.Deserialize<SaveGame>(saveJson, options);
         }
 
         // Save game data to device storage
         public void Save()
         {
-            string saveJson = JsonSerializer.Serialize(this);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true
+            };
+            string saveJson = JsonSerializer.Serialize(this, options);
             Preferences.Default.Set("SaveGame", saveJson);
         }
 
         // Update game statistics after a game ends
-        public void UpdateGame(bool won, int guesses)
+        public void UpdateStats(bool won, int guesses)
         {
             GamesPlayed++;
 
@@ -65,6 +77,13 @@ namespace Wordle
                 CurrentStreak = 0;
             }
 
+            Save();
+        }
+
+        public void AddGameAttempt(string word, int guesses, List<string> history)
+        {
+            var attempt = new GameAttempt(word, guesses, history);
+            GameHistory.Add(attempt);
             Save();
         }
     }
