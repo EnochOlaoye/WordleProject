@@ -5,13 +5,13 @@
 
     <VerticalStackLayout Spacing="10" Padding="20">
        
-        <!-- Theme controls to the top -->
+        <!-- Theme controls -->
         <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
-            <Label Text="Switch to Dark Mode" 
+            <Label Text="Dark Mode" 
                    x:Name="LightModeLabel"
                    VerticalOptions="Center"/>
 
-            <Label Text="Switch to Light Mode" 
+            <Label Text="Light Mode" 
                    x:Name="DarkModeLabel"
                    VerticalOptions="Center"/>
 
@@ -21,6 +21,13 @@
                         WidthRequest="30"
                         Clicked="OnThemeToggleClicked"/>
         </HorizontalStackLayout>
+
+        <!-- Results Area -->
+        <Button x:Name="ResultLabel"
+                Text="Results will appear here"
+                HorizontalOptions="Center"
+                Margin="0,0,0,10"/>
+
 
         <!-- First Row -->
         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
@@ -467,10 +474,21 @@
             </Border>
         </HorizontalStackLayout>
 
-        <!-- Results Area -->
-        <Button x:Name="ResultLabel"
-                Text="Results will appear here"
-                HorizontalOptions="Center"/>
+        <!-- Game Control Buttons at bottom -->
+        <StackLayout Orientation="Horizontal" 
+                 HorizontalOptions="Center" 
+                 Spacing="10">
+            <Button 
+            x:Name="SubmitButton"
+            Text="Submit Guess"
+            Clicked="OnSubmitGuessClicked"/>
+
+            <Button 
+            x:Name="NewGameButton"
+            Text="New Game"
+            Clicked="OnNewGameClicked"/>
+        </StackLayout>
+        
     </VerticalStackLayout>
 
 </ContentPage>

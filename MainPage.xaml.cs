@@ -18,11 +18,18 @@ namespace Wordle
         private readonly Color lightModeBackground = Colors.White;
         private readonly Color lightModeForeground = Colors.Black;
         private string targetWord;
+        private readonly Color correctColor = Colors.Green;       // Letter is correct and in right position
+        private readonly Color presentColor = Colors.Yellow;      // Letter exists but in wrong position
+        private readonly Color incorrectColor = Colors.Gray;      // Letter is not in the word
+
 
         public MainPage()
         {
             InitializeComponent();
-            LoadWordsAsync();
+            System.Diagnostics.Debug.WriteLine("Starting word load...");
+            //LoadWordsAsync();
+
+            Task.Run(async () => await LoadWordsAsync()).Wait();  // Force synchronous wait       
 
             // Load saved theme preference
             isDarkMode = Preferences.Default.Get(ThemePreferenceKey, false); // false is the default value
@@ -136,47 +143,34 @@ namespace Wordle
         // Event handler that triggers when the user clicks the Submit button
         private void OnSubmitGuessClicked(object sender, EventArgs e)
         {
-            // Increment attempt counter
-            count++;
+            // Debug message to verify the button click
+            System.Diagnostics.Debug.WriteLine("Submit button clicked!");
+            ResultLabel.Text = "Button clicked!";  // Visual feedback
 
-            // Get the current row's letters based on attempt count
-            string letter1 = GetEntryText($"Row{count}Letter1");
-            string letter2 = GetEntryText($"Row{count}Letter2");
-            string letter3 = GetEntryText($"Row{count}Letter3");
-            string letter4 = GetEntryText($"Row{count}Letter4");
-            string letter5 = GetEntryText($"Row{count}Letter5");
+
+            string letter1 = GetEntryText($"Row{count + 1}Letter1");
+            string letter2 = GetEntryText($"Row{count + 1}Letter2");
+            string letter3 = GetEntryText($"Row{count + 1}Letter3");
+            string letter4 = GetEntryText($"Row{count + 1}Letter4");
+            string letter5 = GetEntryText($"Row{count + 1}Letter5");
 
             // Combine all letters into a single word
             string guess = $"{letter1}{letter2}{letter3}{letter4}{letter5}";
 
-            // Validate that all Entry controls have a value
-            // IsNullOrWhiteSpace checks for null, empty, or whitespace-only strings
+            System.Diagnostics.Debug.WriteLine($"Guess word: {guess}");
+
+
             if (string.IsNullOrWhiteSpace(guess) || guess.Length != 5)
             {
                 // Display error message if any letter is missing
                 ResultLabel.Text = "Please fill in all letters.";
-                count--; // Decrement count if validation fails
-            }
-            else
-            {
-                // If all letters are present, create the guess word and display it
-
-                //ResultLabel.Text = $"Attempt {count}: You entered '{guess}'";
-
-                if (IsValidWord(guess))
-                {
-                    // Valid word, process the guess
-                    ResultLabel.Text = $"Attempt {count}: You entered '{guess}'";
-                }
-                else
-                {
-                    ResultLabel.Text = "Not a valid word!";
-                    count--;
-                }
+                return;
             }
 
-            // Announce the result for screen readers (accessibility feature)
-            SemanticScreenReader.Announce(ResultLabel.Text);
+            count++;
+
+            // Check the guess
+            CheckGuess(guess.ToUpper());
         }
 
         // Helper method to get Entry text
@@ -229,6 +223,7 @@ namespace Wordle
             try
             {
                 string localPath = Path.Combine(FileSystem.AppDataDirectory, WordsFileName);
+                System.Diagnostics.Debug.WriteLine($"Attempting to load words from: {localPath}");
 
                 // Check if file exists locally
                 if (!File.Exists(localPath))
@@ -237,43 +232,39 @@ namespace Wordle
                     using (var client = new HttpClient())
                     {
                         string words = await client.GetStringAsync(WordsUrl);
+                        System.Diagnostics.Debug.WriteLine($"Downloaded {words.Length} characters");
                         await File.WriteAllTextAsync(localPath, words);
+                        System.Diagnostics.Debug.WriteLine("File downloaded and saved");
                     }
                 }
 
                 // Read from local file
                 string content = await File.ReadAllTextAsync(localPath);
+                System.Diagnostics.Debug.WriteLine($"Read {content.Length} characters from file");
+
                 //wordList = content.Split('\n')
                 wordList = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                                 .Select(w => w.Trim().ToUpper())
                                 .Where(w => w.Length == 5)
                                 .ToList();
 
+                System.Diagnostics.Debug.WriteLine($"Processed {wordList.Count} words");
+
                 // You might want to show a message when words are loaded
                 if (wordList.Count > 0)
                 {
                     SelectRandomWord();
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        ResultLabel.Text = $"Ready to play! ({wordList.Count} words loaded)";
-                    });
+                    System.Diagnostics.Debug.WriteLine($"Selected target word: {targetWord}");
                 }
                 else
                 {
-                    throw new Exception("No valid words were loaded");
+                    System.Diagnostics.Debug.WriteLine("No words were loaded!");
                 }
             }
             catch (Exception ex)
             {
-                // Handle any errors
-                ResultLabel.Text = "Error loading words. Please check your internet connection.";
-                // You might want to log the error: Console.WriteLine(ex.Message);
-                // Update UI on the main thread
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    ResultLabel.Text = "Error loading words. Please check your internet connection.";
-                });
-                Console.WriteLine($"Error loading words: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -327,6 +318,115 @@ namespace Wordle
                 System.Diagnostics.Debug.WriteLine($"Selected word: {targetWord}"); // For testing
             }
         }
+
+        private void CheckGuess(string guess)
+        {
+            guess = guess.ToUpper();
+            var targetChars = targetWord.ToCharArray();
+            var guessChars = guess.ToCharArray();
+
+            // Add debug output
+            System.Diagnostics.Debug.WriteLine($"Checking guess: {guess} against target: {targetWord}");
+
+            // Get the current row's borders based on attempt count
+            for (int i = 0; i < 5; i++)
+            {
+                var border = this.FindByName<Border>($"Border{count}Letter{i + 1}");
+                var entry = this.FindByName<Entry>($"Row{count}Letter{i + 1}");
+
+                if (guessChars[i] == targetChars[i])
+                {
+                    // Correct letter in correct position (green)
+                    border.BackgroundColor = correctColor;
+                    System.Diagnostics.Debug.WriteLine($"Letter {guessChars[i]} at position {i} is correct");
+                }
+                else if (targetWord.Contains(guessChars[i]))
+                {
+                    // Letter exists in word but wrong position (yellow)
+                    border.BackgroundColor = presentColor;
+                    System.Diagnostics.Debug.WriteLine($"Letter {guessChars[i]} at position {i} is present");
+                }
+                else
+                {
+                    // Letter not in word (gray)
+                    border.BackgroundColor = incorrectColor;
+                    System.Diagnostics.Debug.WriteLine($"Letter {guessChars[i]} at position {i} is incorrect");
+                }
+
+                // Make text white for better visibility on colored backgrounds
+                entry.TextColor = Colors.White;
+            }
+
+            // Check if the guess is correct or if game is over
+            if (guess == targetWord)
+            {
+                // Win condition
+                ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
+                DisableAllEntries(); // Optional: disable input after win
+            }
+            else if (count >= 6)
+            {
+                // Loss condition
+                ResultLabel.Text = $"Bad luck! The word was {targetWord}";
+                DisableAllEntries(); // Optional: disable input after loss
+            }
+        }
+
+        // Helper method to disable all entries after game ends
+        private void DisableAllEntries()
+        {
+            for (int row = 1; row <= 6; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
+                    if (entry != null)
+                    {
+                        entry.IsEnabled = false;
+                    }
+                }
+            }
+        }
+
+        private void OnNewGameClicked(object sender, EventArgs e)
+        {
+            // Reset game state
+            count = 0;
+
+            // Clear all entries and reset their colors
+            for (int row = 1; row <= 6; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
+                    var border = this.FindByName<Border>($"Border{row}Letter{col}");
+
+                    if (entry != null)
+                    {
+                        entry.Text = "";
+                        entry.IsEnabled = true;
+                        entry.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
+                    }
+
+                    if (border != null)
+                    {
+                        border.BackgroundColor = Colors.Transparent;
+                        border.Stroke = isDarkMode ? darkModeForeground : Colors.Gray;
+                    }
+                }
+            }
+
+            // Select a new random word
+            SelectRandomWord();
+
+            // Reset the result label
+            ResultLabel.Text = "New game started!";
+
+            // Focus the first entry
+            var firstEntry = this.FindByName<Entry>("Row1Letter1");
+            firstEntry?.Focus();
+        }
+
     }
 
 }
