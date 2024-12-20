@@ -17,6 +17,7 @@ namespace Wordle
         private readonly Color darkModeForeground = Colors.White;
         private readonly Color lightModeBackground = Colors.White;
         private readonly Color lightModeForeground = Colors.Black;
+        private string targetWord;
 
         public MainPage()
         {
@@ -159,8 +160,19 @@ namespace Wordle
             else
             {
                 // If all letters are present, create the guess word and display it
- 
-                ResultLabel.Text = $"Attempt {count}: You entered '{guess}'";
+
+                //ResultLabel.Text = $"Attempt {count}: You entered '{guess}'";
+
+                if (IsValidWord(guess))
+                {
+                    // Valid word, process the guess
+                    ResultLabel.Text = $"Attempt {count}: You entered '{guess}'";
+                }
+                else
+                {
+                    ResultLabel.Text = "Not a valid word!";
+                    count--;
+                }
             }
 
             // Announce the result for screen readers (accessibility feature)
@@ -240,6 +252,7 @@ namespace Wordle
                 // You might want to show a message when words are loaded
                 if (wordList.Count > 0)
                 {
+                    SelectRandomWord();
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         ResultLabel.Text = $"Ready to play! ({wordList.Count} words loaded)";
@@ -301,6 +314,17 @@ namespace Wordle
                         // Optionally trigger submit button here
                         break;
                 }
+            }
+        }
+
+        private void SelectRandomWord()
+        {
+            if (wordList != null && wordList.Count > 0)
+            {
+                Random random = new Random();
+                int index = random.Next(wordList.Count);
+                targetWord = wordList[index].ToUpper();
+                System.Diagnostics.Debug.WriteLine($"Selected word: {targetWord}"); // For testing
             }
         }
     }

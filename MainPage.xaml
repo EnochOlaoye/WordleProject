@@ -5,7 +5,7 @@
 
     <VerticalStackLayout Spacing="10" Padding="20">
        
-        <!-- Move the theme controls to the top -->
+        <!-- Theme controls to the top -->
         <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
             <Label Text="Switch to Dark Mode" 
                    x:Name="LightModeLabel"
