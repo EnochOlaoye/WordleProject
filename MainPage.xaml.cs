@@ -6,13 +6,11 @@ namespace Wordle
 {
     public partial class MainPage : ContentPage
     {
-        int count = 0;  
-        private const string ThemePreferenceKey = "AppTheme"; // Add this constant for the preferences key
+        int count = 0;
+        private const string ThemePreferenceKey = "IsDarkMode";
         private List<string> wordList;
         private const string WordsFileName = "words.txt";
         private const string WordsUrl = "https://raw.githubusercontent.com/DonH-ITS/jsonfiles/main/words.txt";
-        // Add these fields at the top of the MainPage class
-        private bool isDarkMode;
         private readonly Color darkModeBackground = Colors.Black;
         private readonly Color darkModeForeground = Colors.White;
         private readonly Color lightModeBackground = Colors.White;
@@ -22,68 +20,56 @@ namespace Wordle
         private readonly Color presentColor = Colors.Yellow;      // Letter exists but in wrong position
         private readonly Color incorrectColor = Colors.Gray;      // Letter is not in the word
 
+        // Add this static property
+        public static bool IsDarkMode
+        {
+            get => Preferences.Default.Get("IsDarkMode", false);
+            set => Preferences.Default.Set("IsDarkMode", value);
+        }
 
         public MainPage()
         {
             InitializeComponent();
             System.Diagnostics.Debug.WriteLine("Starting word load...");
-            //LoadWordsAsync();
+            Task.Run(async () => await LoadWordsAsync()).Wait();  // Force synchronous wait
 
-            Task.Run(async () => await LoadWordsAsync()).Wait();  // Force synchronous wait       
-
-            // Load saved theme preference
-            isDarkMode = Preferences.Default.Get(ThemePreferenceKey, false); // false is the default value
             ApplyTheme();
         }
 
         private void OnThemeToggleClicked(object sender, EventArgs e)
         {
-            isDarkMode = !isDarkMode;
-
-            // Save the new theme preference
-            Preferences.Default.Set(ThemePreferenceKey, isDarkMode);
-
+            IsDarkMode = !IsDarkMode;
             ApplyTheme();
         }
 
         private void ApplyTheme()
         {
-            // Sets the page background color based on theme
-            // If dark mode, uses black; if light mode, uses white
-            BackgroundColor = isDarkMode ? darkModeBackground : lightModeBackground;
+            BackgroundColor = IsDarkMode ? darkModeBackground : lightModeBackground;
 
-            // Loops through all Entry controls (the letter boxes)
-            // Updates their text color based on theme
-            foreach (var entry in GetAllEntries())
+            // Update theme labels
+            LightModeLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+            DarkModeLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+            LightModeLabel.IsVisible = !IsDarkMode;
+            DarkModeLabel.IsVisible = IsDarkMode;
+
+            // Update theme button
+            ThemeButton.Source = IsDarkMode ? "lightbulb.png" : "darkbulb.png";
+
+            // Update all other labels and controls
+            ResultLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+
+            // Update entry boxes
+            for (int row = 1; row <= 6; row++)
             {
-                entry.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
-                entry.BackgroundColor = Colors.Transparent;
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
+                    if (entry != null)
+                    {
+                        entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+                    }
+                }
             }
-
-            // Loops through all Border controls (the boxes around the letters)
-            // Updates their border color based on theme
-            foreach (var border in GetAllBorders())
-            {
-                border.Stroke = isDarkMode ? darkModeForeground : Colors.Gray;
-            }
-
-            // Updates the Results label text color based on theme
-            ResultLabel.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
-
-            // Controls visibility and color of the "Light Mode" label
-            // Shows when in dark mode (because you can switch to it)
-            LightModeLabel.IsVisible = !isDarkMode;
-            LightModeLabel.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
-
-            // Controls visibility and color of the "Dark Mode" label
-            // Shows when in light mode (because you can switch to it)
-            DarkModeLabel.IsVisible = isDarkMode;
-            DarkModeLabel.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
-
-            // Updates the theme toggle button image
-            // In dark mode: shows lightbulb.png (to indicate you can switch to light)
-            // In light mode: shows darkbulb.png (to indicate you can switch to dark)
-            ThemeButton.Source = isDarkMode ? "lightbulb.png" : "darkbulb.png";
         }
 
         // Method to get all Entry controls from the UI
@@ -147,7 +133,7 @@ namespace Wordle
             System.Diagnostics.Debug.WriteLine("Submit button clicked!");
             ResultLabel.Text = "Button clicked!";  // Visual feedback
 
-
+            // Get the current row's letters based on attempt count
             string letter1 = GetEntryText($"Row{count + 1}Letter1");
             string letter2 = GetEntryText($"Row{count + 1}Letter2");
             string letter3 = GetEntryText($"Row{count + 1}Letter3");
@@ -156,17 +142,15 @@ namespace Wordle
 
             // Combine all letters into a single word
             string guess = $"{letter1}{letter2}{letter3}{letter4}{letter5}";
-
             System.Diagnostics.Debug.WriteLine($"Guess word: {guess}");
-
 
             if (string.IsNullOrWhiteSpace(guess) || guess.Length != 5)
             {
-                // Display error message if any letter is missing
                 ResultLabel.Text = "Please fill in all letters.";
                 return;
             }
 
+            // Increment attempt counter
             count++;
 
             // Check the guess
@@ -228,6 +212,7 @@ namespace Wordle
                 // Check if file exists locally
                 if (!File.Exists(localPath))
                 {
+                    System.Diagnostics.Debug.WriteLine("File not found locally, downloading...");
                     // Download file if it doesn't exist
                     using (var client = new HttpClient())
                     {
@@ -242,15 +227,13 @@ namespace Wordle
                 string content = await File.ReadAllTextAsync(localPath);
                 System.Diagnostics.Debug.WriteLine($"Read {content.Length} characters from file");
 
-                //wordList = content.Split('\n')
                 wordList = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(w => w.Trim().ToUpper())
-                                .Where(w => w.Length == 5)
-                                .ToList();
+                                 .Select(w => w.Trim().ToUpper())
+                                 .Where(w => w.Length == 5)
+                                 .ToList();
 
                 System.Diagnostics.Debug.WriteLine($"Processed {wordList.Count} words");
 
-                // You might want to show a message when words are loaded
                 if (wordList.Count > 0)
                 {
                     SelectRandomWord();
@@ -361,14 +344,12 @@ namespace Wordle
             if (guess == targetWord)
             {
                 // Win condition
-                ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
-                DisableAllEntries(); // Optional: disable input after win
+                EndGame(true);
             }
             else if (count >= 6)
             {
                 // Loss condition
-                ResultLabel.Text = $"Bad luck! The word was {targetWord}";
-                DisableAllEntries(); // Optional: disable input after loss
+                EndGame(false);
             }
         }
 
@@ -405,13 +386,13 @@ namespace Wordle
                     {
                         entry.Text = "";
                         entry.IsEnabled = true;
-                        entry.TextColor = isDarkMode ? darkModeForeground : lightModeForeground;
+                        entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
                     }
 
                     if (border != null)
                     {
                         border.BackgroundColor = Colors.Transparent;
-                        border.Stroke = isDarkMode ? darkModeForeground : Colors.Gray;
+                        border.Stroke = IsDarkMode ? darkModeForeground : Colors.Gray;
                     }
                 }
             }
@@ -427,6 +408,26 @@ namespace Wordle
             firstEntry?.Focus();
         }
 
+        private void EndGame(bool won)
+        {
+            var save = SaveGame.Load();
+            save.UpdateGame(won, count);
+
+            if (won)
+            {
+                ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
+            }
+            else
+            {
+                ResultLabel.Text = $"Bad luck! The word was {targetWord}";
+            }
+            DisableAllEntries();
+        }
+
+        private async void OnViewProgressClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new SaveGamePage());
+        }
     }
 
 }

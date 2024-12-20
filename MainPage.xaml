@@ -487,8 +487,12 @@
             x:Name="NewGameButton"
             Text="New Game"
             Clicked="OnNewGameClicked"/>
+
+            <Button Text="View Progress"
+                Clicked="OnViewProgressClicked"
+                HorizontalOptions="Center"/>
+
         </StackLayout>
-        
     </VerticalStackLayout>
 
 </ContentPage>

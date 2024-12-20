@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Wordle.SaveGamePage">
+    <VerticalStackLayout Spacing="20" Padding="20">
+
+        <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
+            <Label Text="Light Mode" 
+                   x:Name="LightModeLabel"
+                   VerticalOptions="Center"/>
+
+            <Label Text="Dark Mode" 
+                   x:Name="DarkModeLabel"
+                   VerticalOptions="Center"/>
+
+            <ImageButton x:Name="ThemeButton"
+                        Source="lightbulb.png"
+                        HeightRequest="30"
+                        WidthRequest="30"
+                        Clicked="OnThemeToggleClicked"/>
+        </HorizontalStackLayout>
+
+        <Label Text="Your Progress"
+               x:Name="YourProgressLabel"
+               FontSize="24"
+               HorizontalOptions="Center"/>
+
+        <Grid ColumnSpacing="20" RowSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Text="Games Played:" x:Name="GamesPlayedTitle" Grid.Row="0" Grid.Column="0"/>
+            <Label x:Name="GamesPlayedLabel" Grid.Row="0" Grid.Column="1"/>
+
+            <Label Text="Games Won:" x:Name="GamesWonTitle" Grid.Row="1" Grid.Column="0"/>
+            <Label x:Name="GamesWonLabel" Grid.Row="1" Grid.Column="1"/>
+
+            <Label Text="Current Streak:" x:Name="CurrentStreakTitle" Grid.Row="2" Grid.Column="0"/>
+            <Label x:Name="CurrentStreakLabel" Grid.Row="2" Grid.Column="1"/>
+
+            <Label Text="Max Streak:" x:Name="MaxStreakTitle" Grid.Row="3" Grid.Column="0"/>
+            <Label x:Name="MaxStreakLabel" Grid.Row="3" Grid.Column="1"/>
+        </Grid>
+
+        <Button Text="Back to Game"
+                Clicked="OnBackToGameClicked"
+                HorizontalOptions="Center"/>
+    </VerticalStackLayout>
+</ContentPage> 
