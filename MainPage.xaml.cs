@@ -36,6 +36,31 @@ namespace Wordle
             ApplyTheme();
         }
 
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await CheckPlayerName();
+        }
+
+        private async Task CheckPlayerName()
+        {
+            string playerName = await Player.GetPlayerName();
+
+            if (string.IsNullOrEmpty(playerName))
+            {
+                string name = await DisplayPromptAsync(
+                    "Welcome!",
+                    "Please enter your name:",
+                    maxLength: 20,
+                    keyboard: Keyboard.Text);
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    await Player.SavePlayerName(name);
+                }
+            }
+        }
+
         private void OnThemeToggleClicked(object sender, EventArgs e)
         {
             IsDarkMode = !IsDarkMode;
@@ -408,11 +433,17 @@ namespace Wordle
             firstEntry?.Focus();
         }
 
-        private void EndGame(bool won)
+        private async void EndGame(bool won)
         {
-            var save = SaveGame.Load();
-
+            var save = await SaveGame.Load();
             save.UpdateStats(won, count);
+
+            // Save game attempt
+            save.AddGameAttempt(
+                targetWord,
+                count,
+                GetGuessHistory()
+            );
 
             if (won)
             {

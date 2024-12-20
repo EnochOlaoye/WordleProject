@@ -27,6 +27,14 @@ public partial class SaveGamePage : ContentPage
         System.Diagnostics.Debug.WriteLine($"SaveGamePage navigated to - theme is {(MainPage.IsDarkMode ? "Dark" : "Light")}");
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        string playerName = await Player.GetPlayerName();
+        PlayerNameLabel.Text = $"Player: {playerName}";
+        PlayerNameLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
+    }
+
     private void OnThemeToggleClicked(object sender, EventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("Theme toggle clicked");
@@ -41,6 +49,7 @@ public partial class SaveGamePage : ContentPage
         // Set page background
         this.BackgroundColor = MainPage.IsDarkMode ? darkModeBackground : lightModeBackground;
 
+        // Update "Your Progress" title label
         var progressTitle = this.FindByName<Label>("YourProgressLabel");
         if (progressTitle != null)
         {
@@ -59,11 +68,11 @@ public partial class SaveGamePage : ContentPage
         CurrentStreakLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
         MaxStreakLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
 
-        // Update theme controls
+        // Update theme controls - Fixed the visibility logic
         LightModeLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
         DarkModeLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
-        LightModeLabel.IsVisible = !MainPage.IsDarkMode;
-        DarkModeLabel.IsVisible = MainPage.IsDarkMode;
+        LightModeLabel.IsVisible = MainPage.IsDarkMode;  // Show Light Mode option when in Dark Mode
+        DarkModeLabel.IsVisible = !MainPage.IsDarkMode;  // Show Dark Mode option when in Light Mode
 
         // Update theme button
         ThemeButton.Source = MainPage.IsDarkMode ? "lightbulb.png" : "darkbulb.png";
@@ -71,21 +80,23 @@ public partial class SaveGamePage : ContentPage
         // Add history label to theme
         HistoryLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
 
+        // Update player name label
+        PlayerNameLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
 
         System.Diagnostics.Debug.WriteLine("Theme applied to all elements");
     }
 
-    private void LoadProgress()
+    private async void LoadProgress()
     {
-        var save = SaveGame.Load();
+        var save = await SaveGame.Load();
 
         GamesPlayedLabel.Text = save.GamesPlayed.ToString();
         GamesWonLabel.Text = save.GamesWon.ToString();
         CurrentStreakLabel.Text = save.CurrentStreak.ToString();
         MaxStreakLabel.Text = save.MaxStreak.ToString();
 
-        // Load history
-        HistoryList.ItemsSource = save.GameHistory.OrderByDescending(h => h.Timestamp);
+        // Bind history directly
+        HistoryList.ItemsSource = save.History.GetSortedAttempts();
     }
 
     private async void OnBackToGameClicked(object sender, EventArgs e)

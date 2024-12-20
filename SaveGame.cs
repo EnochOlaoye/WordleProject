@@ -15,32 +15,40 @@ namespace Wordle
         public int CurrentStreak { get; set; }
         public int MaxStreak { get; set; }
         public Dictionary<int, int> GuessDistribution { get; set; }
-        public List<GameAttempt> GameHistory { get; set; } = new List<GameAttempt>();
+        private PlayerHistory _history;
+        public PlayerHistory History
+        {
+            get => _history;
+            set => _history = value;
+        }
 
         // Calculate win percentage
         public double WinPercentage => GamesPlayed > 0 ? (double)GamesWon / GamesPlayed * 100 : 0;
 
         // Constructor
-        public SaveGame()
+        private SaveGame()
         {
             GuessDistribution = new Dictionary<int, int>();
-            GameHistory = new List<GameAttempt>();
+        }
+
+        public static async Task<SaveGame> Create()
+        {
+            var save = new SaveGame();
+            save._history = await PlayerHistory.Load();
+            return save;
         }
 
         // Load saved game data from device storage
-        public static SaveGame Load()
+        public static async Task<SaveGame> Load()
         {
             string saveJson = Preferences.Default.Get("SaveGame", "");
             if (string.IsNullOrEmpty(saveJson))
             {
-                return new SaveGame();
+                return await Create();
             }
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                WriteIndented = true
-            };
-            return JsonSerializer.Deserialize<SaveGame>(saveJson, options);
+            var save = JsonSerializer.Deserialize<SaveGame>(saveJson) ?? await Create();
+            save._history = await PlayerHistory.Load();
+            return save;
         }
 
         // Save game data to device storage
@@ -83,7 +91,7 @@ namespace Wordle
         public void AddGameAttempt(string word, int guesses, List<string> history)
         {
             var attempt = new GameAttempt(word, guesses, history);
-            GameHistory.Add(attempt);
+            _history.AddAttempt(attempt);
             Save();
         }
     }
