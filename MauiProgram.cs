@@ -19,8 +19,6 @@ namespace Wordle
     		builder.Logging.AddDebug();
 #endif
 
-
-
             return builder.Build();
         }
     }
