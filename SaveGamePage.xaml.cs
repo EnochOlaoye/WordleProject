@@ -17,7 +17,7 @@ public partial class SaveGamePage : ContentPage
         InitializeComponent();
         System.Diagnostics.Debug.WriteLine($"SaveGamePage: Theme is {(MainPage.IsDarkMode ? "Dark" : "Light")}");
         ApplyTheme();
-        LoadProgress();
+        LoadProgressAsync();
     }
 
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
@@ -33,6 +33,7 @@ public partial class SaveGamePage : ContentPage
         string playerName = await Player.GetPlayerName();
         PlayerNameLabel.Text = $"Player: {playerName}";
         PlayerNameLabel.TextColor = MainPage.IsDarkMode ? darkModeForeground : lightModeForeground;
+        await LoadProgressAsync();
     }
 
     private void OnThemeToggleClicked(object sender, EventArgs e)
@@ -86,17 +87,28 @@ public partial class SaveGamePage : ContentPage
         System.Diagnostics.Debug.WriteLine("Theme applied to all elements");
     }
 
-    private async void LoadProgress()
+    private async Task LoadProgressAsync()
     {
-        var save = await SaveGame.Load();
+        try
+        {
+            var save = await SaveGame.Load();
 
-        GamesPlayedLabel.Text = save.GamesPlayed.ToString();
-        GamesWonLabel.Text = save.GamesWon.ToString();
-        CurrentStreakLabel.Text = save.CurrentStreak.ToString();
-        MaxStreakLabel.Text = save.MaxStreak.ToString();
+            GamesPlayedLabel.Text = save.GamesPlayed.ToString();
+            GamesWonLabel.Text = save.GamesWon.ToString();
+            CurrentStreakLabel.Text = save.CurrentStreak.ToString();
+            MaxStreakLabel.Text = save.MaxStreak.ToString();
 
-        // Bind history directly
-        HistoryList.ItemsSource = save.History.GetSortedAttempts();
+            // Bind history directly
+            if (save.History != null)
+            {
+                HistoryList.ItemsSource = save.History.GetSortedAttempts();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading progress: {ex.Message}");
+            await DisplayAlert("Error", "Unable to load game progress", "OK");
+        }
     }
 
     private async void OnBackToGameClicked(object sender, EventArgs e)

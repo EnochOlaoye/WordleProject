@@ -41,14 +41,26 @@ namespace Wordle
         // Load saved game data from device storage
         public static async Task<SaveGame> Load()
         {
-            string saveJson = Preferences.Default.Get("SaveGame", "");
-            if (string.IsNullOrEmpty(saveJson))
+            try
             {
+                string saveJson = Preferences.Default.Get("SaveGame", "");
+                if (string.IsNullOrEmpty(saveJson))
+                {
+                    return await Create();
+                }
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var save = JsonSerializer.Deserialize<SaveGame>(saveJson, options) ?? await Create();
+                save._history = await PlayerHistory.Load();
+                return save;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading save: {ex.Message}");
                 return await Create();
             }
-            var save = JsonSerializer.Deserialize<SaveGame>(saveJson) ?? await Create();
-            save._history = await PlayerHistory.Load();
-            return save;
         }
 
         // Save game data to device storage
