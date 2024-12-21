@@ -15,63 +15,36 @@ namespace Wordle
         public int CurrentStreak { get; set; }
         public int MaxStreak { get; set; }
         public Dictionary<int, int> GuessDistribution { get; set; }
-        private PlayerHistory _history;
-        public PlayerHistory History
-        {
-            get => _history;
-            set => _history = value;
-        }
+        public PlayerHistory History { get; set; }
 
         // Calculate win percentage
         public double WinPercentage => GamesPlayed > 0 ? (double)GamesWon / GamesPlayed * 100 : 0;
 
         // Constructor
-        private SaveGame()
+        public SaveGame()
         {
             GuessDistribution = new Dictionary<int, int>();
+            History = new PlayerHistory();
         }
 
-        public static async Task<SaveGame> Create()
-        {
-            var save = new SaveGame();
-            save._history = await PlayerHistory.Load();
-            return save;
-        }
-
-        // Load saved game data from device storage
         public static async Task<SaveGame> Load()
         {
-            try
+            string saveJson = Preferences.Default.Get("SaveGame", "");
+            if (string.IsNullOrEmpty(saveJson))
             {
-                string saveJson = Preferences.Default.Get("SaveGame", "");
-                if (string.IsNullOrEmpty(saveJson))
-                {
-                    return await Create();
-                }
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                var save = JsonSerializer.Deserialize<SaveGame>(saveJson, options) ?? await Create();
-                save._history = await PlayerHistory.Load();
-                return save;
+                var newSave = new SaveGame();
+                newSave.History = await PlayerHistory.Load();
+                return newSave;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading save: {ex.Message}");
-                return await Create();
-            }
+            var save = JsonSerializer.Deserialize<SaveGame>(saveJson) ?? new SaveGame();
+            save.History = await PlayerHistory.Load();
+            return save;
         }
 
         // Save game data to device storage
         public void Save()
         {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                WriteIndented = true
-            };
-            string saveJson = JsonSerializer.Serialize(this, options);
+            string saveJson = JsonSerializer.Serialize(this);
             Preferences.Default.Set("SaveGame", saveJson);
         }
 
@@ -103,7 +76,7 @@ namespace Wordle
         public void AddGameAttempt(string word, int guesses, List<string> history)
         {
             var attempt = new GameAttempt(word, guesses, history);
-            _history.AddAttempt(attempt);
+            History.AddAttempt(attempt);
             Save();
         }
     }

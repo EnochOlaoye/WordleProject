@@ -34,16 +34,17 @@
             <Border x:Name="Border1Letter1" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">
                 <Entry x:Name="Row1Letter1"
-                       MaxLength="1" 
-                       TextChanged="OnTextChanged"
-                       IsEnabled="True"
-                       Focused="OnEntryFocused"
-                       Completed="OnEntryCompleted"
-                       HorizontalTextAlignment="Center" 
-                       VerticalTextAlignment="Center"
-                       FontSize="24"
-                       BackgroundColor="Transparent"
-                       WidthRequest="40"/>
+                   AutomationId="Row1Letter1"
+                   MaxLength="1"
+                   TextChanged="OnFirstBoxTextChanged"
+                   Focused="OnFirstBoxFocused"
+                   IsEnabled="True"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   FontSize="24"
+                   BackgroundColor="Transparent"
+                   TextColor="{x:Static Colors.White}"    
+                   WidthRequest="40"/>
             </Border>
             <Border x:Name="Border1Letter2" StrokeThickness="2" Stroke="Gray" 
                     WidthRequest="60" HeightRequest="60">

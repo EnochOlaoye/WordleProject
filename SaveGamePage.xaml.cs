@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Wordle;
 
+
 public partial class SaveGamePage : ContentPage
 {
     private readonly Color darkModeBackground = Colors.Black;
@@ -15,9 +16,8 @@ public partial class SaveGamePage : ContentPage
     public SaveGamePage()
     {
         InitializeComponent();
-        System.Diagnostics.Debug.WriteLine($"SaveGamePage: Theme is {(MainPage.IsDarkMode ? "Dark" : "Light")}");
         ApplyTheme();
-        LoadProgressAsync();
+        _ = LoadProgressAsync();
     }
 
     protected override void OnNavigatedTo(NavigatedToEventArgs args)
@@ -98,7 +98,6 @@ public partial class SaveGamePage : ContentPage
             CurrentStreakLabel.Text = save.CurrentStreak.ToString();
             MaxStreakLabel.Text = save.MaxStreak.ToString();
 
-            // Bind history directly
             if (save.History != null)
             {
                 HistoryList.ItemsSource = save.History.GetSortedAttempts();
@@ -114,5 +113,27 @@ public partial class SaveGamePage : ContentPage
     private async void OnBackToGameClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
+    }
+
+    private async void LoadProgress()
+    {
+        try
+        {
+            var save = await SaveGame.Load();
+
+            GamesPlayedLabel.Text = save.GamesPlayed.ToString();
+            GamesWonLabel.Text = save.GamesWon.ToString();
+            CurrentStreakLabel.Text = save.CurrentStreak.ToString();
+            MaxStreakLabel.Text = save.MaxStreak.ToString();
+
+            if (save.History != null)
+            {
+                HistoryList.ItemsSource = save.History.GetSortedAttempts();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading progress: {ex.Message}");
+        }
     }
 }

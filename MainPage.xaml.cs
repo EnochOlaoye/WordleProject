@@ -8,14 +8,16 @@ namespace Wordle
     {
         int count = 0;
         private const string ThemePreferenceKey = "IsDarkMode";
-        private List<string> wordList;
+        //private List<string> wordList;
+        private List<string>? wordList;
         private const string WordsFileName = "words.txt";
         private const string WordsUrl = "https://raw.githubusercontent.com/DonH-ITS/jsonfiles/main/words.txt";
         private readonly Color darkModeBackground = Colors.Black;
         private readonly Color darkModeForeground = Colors.White;
         private readonly Color lightModeBackground = Colors.White;
         private readonly Color lightModeForeground = Colors.Black;
-        private string targetWord;
+        //private string targetWord;
+        private string targetWord = string.Empty;
         private readonly Color correctColor = Colors.Green;       // Letter is correct and in right position
         private readonly Color presentColor = Colors.Yellow;      // Letter exists but in wrong position
         private readonly Color incorrectColor = Colors.Gray;      // Letter is not in the word
@@ -30,35 +32,143 @@ namespace Wordle
         public MainPage()
         {
             InitializeComponent();
-            System.Diagnostics.Debug.WriteLine("Starting word load...");
-            Task.Run(async () => await LoadWordsAsync()).Wait();  // Force synchronous wait
+            _ = InitializeGame();
+        }
 
-            ApplyTheme();
+        private async Task InitializeGame()
+        {
+            try
+            {
+                await LoadWordsAsync();
+                SelectRandomWord();
+                count = 1;
+
+                // Reset all entries
+                ResetAllEntries();
+
+                System.Diagnostics.Debug.WriteLine($"Game initialized with word: {targetWord}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error initializing game: {ex.Message}");
+            }
+        }
+
+        private void ResetAllEntries()
+        {
+            // Reset all entries and their colors
+            for (int row = 1; row <= 6; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
+                    var border = this.FindByName<Border>($"Border{row}Letter{col}");
+
+                    if (entry != null)
+                    {
+                        entry.Text = "";
+                        entry.IsEnabled = true;
+
+                        // Special handling for first box
+                        if (entry == Row1Letter1)
+                        {
+                            entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+                        }
+                        else
+                        {
+                            entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+                        }
+                    }
+
+                    if (border != null)
+                    {
+                        border.BackgroundColor = Colors.Transparent;
+                        border.Stroke = IsDarkMode ? darkModeForeground : Colors.Gray;
+                    }
+                }
+            }
+
+            // Focus the first entry
+            Row1Letter1?.Focus();
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await CheckPlayerName();
+            try
+            {
+                await CheckAndLoginPlayer();
+                ApplyTheme();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnAppearing: {ex.Message}");
+            }
         }
 
-        private async Task CheckPlayerName()
+        private async Task CheckAndLoginPlayer()
         {
-            string playerName = await Player.GetPlayerName();
-
-            if (string.IsNullOrEmpty(playerName))
+            try
             {
-                string name = await DisplayPromptAsync(
-                    "Welcome!",
-                    "Please enter your name:",
-                    maxLength: 20,
-                    keyboard: Keyboard.Text);
+                string currentPlayer = await Player.GetPlayerName();
 
-                if (!string.IsNullOrEmpty(name))
+                if (string.IsNullOrEmpty(currentPlayer))
                 {
+                    string name = await DisplayPromptAsync(
+                        "Welcome to Wordle!",
+                        "Please enter your name:",
+                        maxLength: 20,
+                        keyboard: Keyboard.Text);
+
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        name = "Player";
+                    }
+
                     await Player.SavePlayerName(name);
+                    System.Diagnostics.Debug.WriteLine($"New player created: {name}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"Existing player loaded: {currentPlayer}");
                 }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CheckAndLoginPlayer: {ex.Message}");
+            }
+        }
+
+        private async Task SwitchPlayer()
+        {
+            var existingPlayers = await Player.GetExistingPlayers();
+            existingPlayers.Add("New Player");
+
+            string result = await DisplayActionSheet(
+                "Choose Player",
+                "Cancel",
+                null,
+                existingPlayers.ToArray());
+
+            if (result == "New Player")
+            {
+                await CreateNewPlayer();
+            }
+            else if (!string.IsNullOrEmpty(result) && result != "Cancel")
+            {
+                await Player.SavePlayerName(result);
+                var save = await SaveGame.Load();
+                await DisplayAlert("Player Switched",
+                    $"Welcome back, {result}!\n" +
+                    $"Games Won: {save.GamesWon}",
+                    "OK");
+            }
+        }
+
+        // Add this to your toolbar/menu
+        private async void OnSwitchPlayerClicked(object sender, EventArgs e)
+        {
+            await SwitchPlayer();
         }
 
         private void OnThemeToggleClicked(object sender, EventArgs e)
@@ -83,11 +193,16 @@ namespace Wordle
             // Update all other labels and controls
             ResultLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
 
-            // Update entry boxes
+            // Force update first box
+            Row1Letter1.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+
+            // Update all other entries
             for (int row = 1; row <= 6; row++)
             {
                 for (int col = 1; col <= 5; col++)
                 {
+                    if (row == 1 && col == 1) continue; // Skip first box
+
                     var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
                     if (entry != null)
                     {
@@ -154,32 +269,15 @@ namespace Wordle
         // Event handler that triggers when the user clicks the Submit button
         private void OnSubmitGuessClicked(object sender, EventArgs e)
         {
-            // Debug message to verify the button click
-            System.Diagnostics.Debug.WriteLine("Submit button clicked!");
-            ResultLabel.Text = "Button clicked!";  // Visual feedback
-
-            // Get the current row's letters based on attempt count
-            string letter1 = GetEntryText($"Row{count + 1}Letter1");
-            string letter2 = GetEntryText($"Row{count + 1}Letter2");
-            string letter3 = GetEntryText($"Row{count + 1}Letter3");
-            string letter4 = GetEntryText($"Row{count + 1}Letter4");
-            string letter5 = GetEntryText($"Row{count + 1}Letter5");
-
-            // Combine all letters into a single word
-            string guess = $"{letter1}{letter2}{letter3}{letter4}{letter5}";
-            System.Diagnostics.Debug.WriteLine($"Guess word: {guess}");
-
-            if (string.IsNullOrWhiteSpace(guess) || guess.Length != 5)
+            try
             {
-                ResultLabel.Text = "Please fill in all letters.";
-                return;
+                // Call OnGuessSubmitted directly
+                OnGuessSubmitted(sender, e);
             }
-
-            // Increment attempt counter
-            count++;
-
-            // Check the guess
-            CheckGuess(guess.ToUpper());
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnSubmitGuessClicked: {ex.Message}");
+            }
         }
 
         // Helper method to get Entry text
@@ -192,37 +290,56 @@ namespace Wordle
         // Event handler that triggers whenever text changes in an Entry control
         private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            // Cast sender to Entry at the beginning of the method
-            if (sender is not Entry entry)
-                return;
-
-            string input = e.NewTextValue?.ToUpper() ?? "";
-            if (input.Length > 0)
+            try
             {
-                if (!char.IsLetter(input[0]))
-                {
-                    entry.Text = "";
+                if (sender is not Entry entry)
                     return;
-                }
-                entry.Text = input[0].ToString();
 
-                // Fix: Use entry.AutomationId for the switch statement
-                switch (entry.AutomationId)
+                string input = e.NewTextValue?.ToUpper() ?? "";
+
+                // Special handling for first box
+                if (entry == Row1Letter1)
                 {
-                    case "Row1Letter1":
-                        Row1Letter2?.Focus();
-                        break;
-                    case "Row1Letter2":
-                        Row1Letter3?.Focus();
-                        break;
-                    case "Row1Letter3":
-                        Row1Letter4?.Focus();
-                        break;
-                    case "Row1Letter4":
-                        Row1Letter5?.Focus();
-                        break;
-                        // Add cases for other rows if needed
+                    entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+                    System.Diagnostics.Debug.WriteLine($"First box color set to: {entry.TextColor}");
                 }
+                else
+                {
+                    entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+                }
+
+                if (input.Length > 0)
+                {
+                    if (!char.IsLetter(input[0]))
+                    {
+                        entry.Text = "";
+                        return;
+                    }
+
+                    entry.Text = input[0].ToString();
+
+                    if (string.IsNullOrEmpty(entry.AutomationId) || entry.AutomationId.Length < 10)
+                    {
+                        return;
+                    }
+
+                    if (int.TryParse(entry.AutomationId.Substring(3, 1), out int rowNum) &&
+                        int.TryParse(entry.AutomationId.Substring(9, 1), out int letterNum))
+                    {
+                        if (letterNum < 5)
+                        {
+                            var nextEntry = this.FindByName<Entry>($"Row{rowNum}Letter{letterNum + 1}");
+                            if (nextEntry != null)
+                            {
+                                nextEntry.Focus();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnTextChanged: {ex.Message}");
             }
         }
 
@@ -286,7 +403,15 @@ namespace Wordle
         {
             if (sender is Entry entry)
             {
-                entry.Text = ""; // Clear the entry when focused
+                entry.Text = "";
+                if (entry == Row1Letter1)
+                {
+                    entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+                }
+                else
+                {
+                    entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+                }
             }
         }
 
@@ -399,61 +524,53 @@ namespace Wordle
             // Reset game state
             count = 0;
 
-            // Clear all entries and reset their colors
-            for (int row = 1; row <= 6; row++)
-            {
-                for (int col = 1; col <= 5; col++)
-                {
-                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
-                    var border = this.FindByName<Border>($"Border{row}Letter{col}");
-
-                    if (entry != null)
-                    {
-                        entry.Text = "";
-                        entry.IsEnabled = true;
-                        entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
-                    }
-
-                    if (border != null)
-                    {
-                        border.BackgroundColor = Colors.Transparent;
-                        border.Stroke = IsDarkMode ? darkModeForeground : Colors.Gray;
-                    }
-                }
-            }
+            // Reset all entries and their colors
+            ResetAllEntries();
 
             // Select a new random word
             SelectRandomWord();
 
             // Reset the result label
             ResultLabel.Text = "New game started!";
-
-            // Focus the first entry
-            var firstEntry = this.FindByName<Entry>("Row1Letter1");
-            firstEntry?.Focus();
         }
 
         private async void EndGame(bool won)
         {
-            var save = await SaveGame.Load();
-            save.UpdateStats(won, count);
-
-            // Save game attempt
-            save.AddGameAttempt(
-                targetWord,
-                count,
-                GetGuessHistory()
-            );
-
-            if (won)
+            try
             {
-                ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
+                var save = await SaveGame.Load();
+                save.GamesPlayed++;
+
+                if (won)
+                {
+                    save.GamesWon++;
+                    save.CurrentStreak++;
+                    save.MaxStreak = Math.Max(save.MaxStreak, save.CurrentStreak);
+                }
+                else
+                {
+                    save.CurrentStreak = 0;
+                }
+
+                save.Save();
+
+                // Add game attempt to history
+                save.History.AddAttempt(new GameAttempt(targetWord, count, GetGuessHistory()));
+
+                if (won)
+                {
+                    ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
+                }
+                else
+                {
+                    ResultLabel.Text = $"Bad luck! The word was {targetWord}";
+                }
+                DisableAllEntries();
             }
-            else
+            catch (Exception ex)
             {
-                ResultLabel.Text = $"Bad luck! The word was {targetWord}";
+                System.Diagnostics.Debug.WriteLine($"Error in EndGame: {ex.Message}");
             }
-            DisableAllEntries();
         }
 
         private List<string> GetGuessHistory()
@@ -494,6 +611,179 @@ namespace Wordle
                 await DisplayAlert("Error", $"Navigation failed: {ex.Message}", "OK");
             }
         }
+
+        // Special handlers for the first box
+        private void OnFirstBoxTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (sender is not Entry entry)
+                    return;
+
+                string input = e.NewTextValue?.ToUpper() ?? "";
+
+                if (input.Length > 0)
+                {
+                    if (!char.IsLetter(input[0]))
+                    {
+                        entry.Text = "";
+                        return;
+                    }
+
+                    entry.Text = input[0].ToString();
+
+                    // Force color update
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+                    });
+
+                    // Move to next box
+                    Row1Letter2?.Focus();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in first box text changed: {ex.Message}");
+            }
+        }
+
+        private void OnFirstBoxFocused(object sender, FocusEventArgs e)
+        {
+            // Cast sender to Entry explicitly
+            var entry = (Entry)sender;
+            entry.Text = string.Empty;
+            entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
+            System.Diagnostics.Debug.WriteLine($"First box focused - color set to: {entry.TextColor}");
+        }
+
+        private async Task ShowRecentPlayers()
+        {
+            var players = await Player.GetExistingPlayers();
+            var recentPlayers = players.Take(5).ToList(); // Show last 5 players
+
+            string result = await DisplayActionSheet(
+                "Recent Players",
+                "Cancel",
+                null,
+                recentPlayers.ToArray());
+
+            if (!string.IsNullOrEmpty(result) && result != "Cancel")
+            {
+                await Player.SavePlayerName(result);
+                await DisplayAlert("Success", $"Switched to {result}", "OK");
+            }
+        }
+
+        private async Task CreateNewPlayer()
+        {
+            string name = await DisplayPromptAsync(
+                "Welcome to Wordle!",
+                "Please enter your name:",
+                maxLength: 20,
+                keyboard: Keyboard.Text);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "Player";
+            }
+
+            await Player.SavePlayerName(name);
+            System.Diagnostics.Debug.WriteLine($"New player created: {name}");
+        }
+
+        private void OnGuessSubmitted(object sender, EventArgs e)
+        {
+            try
+            {
+                // Get the current row's entries
+                var currentRowEntries = new List<Entry>();
+                var currentRowBorders = new List<Border>();
+
+                for (int i = 1; i <= 5; i++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{count}Letter{i}");
+                    var border = this.FindByName<Border>($"Border{count}Letter{i}");
+                    if (entry != null && border != null)
+                    {
+                        currentRowEntries.Add(entry);
+                        currentRowBorders.Add(border);
+                    }
+                }
+
+                // Validate input
+                if (currentRowEntries.Any(e => string.IsNullOrEmpty(e.Text)))
+                {
+                    DisplayAlert("Invalid", "Please enter all letters", "OK");
+                    return;
+                }
+
+                string guess = string.Join("", currentRowEntries.Select(e => e.Text)).ToUpper();
+
+                // Same color logic for all rows including first row
+                for (int i = 0; i < 5; i++)
+                {
+                    var entry = currentRowEntries[i];
+                    var border = currentRowBorders[i];
+
+                    if (guess[i] == targetWord[i])
+                    {
+                        border.BackgroundColor = Colors.Green;
+                        entry.TextColor = Colors.White;
+                    }
+                    else if (targetWord.Contains(guess[i]))
+                    {
+                        border.BackgroundColor = Colors.Orange;
+                        entry.TextColor = Colors.White;
+                    }
+                    else
+                    {
+                        border.BackgroundColor = Colors.Gray;
+                        entry.TextColor = Colors.White;
+                    }
+
+                    entry.IsEnabled = false;
+                }
+
+                if (guess == targetWord)
+                {
+                    EndGame(true);
+                    return;
+                }
+
+                if (count == 6)
+                {
+                    EndGame(false);
+                    return;
+                }
+
+                count++;
+                FocusNextRow();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in OnGuessSubmitted: {ex.Message}");
+            }
+        }
+
+        private void FocusNextRow()
+        {
+            try
+            {
+                // Focus the first entry of the next row
+                var nextEntry = this.FindByName<Entry>($"Row{count}Letter1");
+                nextEntry?.Focus();
+                System.Diagnostics.Debug.WriteLine($"Focusing next row: Row{count}Letter1");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error focusing next row: {ex.Message}");
+            }
+        }
     }
 
 }
+
+
+
+
