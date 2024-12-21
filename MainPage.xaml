@@ -42,8 +42,7 @@
                    HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center"
                    FontSize="24"
-                   BackgroundColor="Transparent"
-                   TextColor="{x:Static Colors.White}"    
+                   BackgroundColor="Transparent"               
                    WidthRequest="40"/>
             </Border>
             <Border x:Name="Border1Letter2" StrokeThickness="2" Stroke="Gray" 
