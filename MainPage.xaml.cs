@@ -40,12 +40,24 @@ namespace Wordle
         {
             try
             {
-                string choice = await DisplayActionSheet(
-                    "Welcome to Wordle!",
-                    null,
-                    null,
-                    "Continue Previous Game",
-                    "Start New Game");
+                string choice;
+                do
+                {
+                    // Remove the Cancel option by setting it to null
+                    choice = await DisplayActionSheet(
+                        "Welcome to Wordle!",
+                        null,  // No cancel option
+                        null,  // No destruction option
+                        "Continue Previous Game",
+                        "Start New Game");
+
+                    // Keep showing the prompt until user makes a valid choice
+                    if (string.IsNullOrEmpty(choice))
+                    {
+                        await DisplayAlert("Required", "Please select an option to continue", "OK");
+                    }
+
+                } while (string.IsNullOrEmpty(choice));
 
                 // Initialize game first
                 await LoadWordsAsync();
@@ -56,39 +68,9 @@ namespace Wordle
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     // Reset all entries and borders
-                    for (int row = 1; row <= 6; row++)
-                    {
-                        for (int col = 1; col <= 5; col++)
-                        {
-                            var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
-                            var border = this.FindByName<Border>($"Border{row}Letter{col}");
-
-                            if (entry != null)
-                            {
-                                entry.Text = "";
-                                entry.IsEnabled = true;
-
-                                // Set text colors immediately
-                                if (row == 1 && col == 1)
-                                {
-                                    entry.TextColor = IsDarkMode ? Colors.White : Colors.Black;
-                                }
-                                else
-                                {
-                                    entry.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
-                                }
-                            }
-
-                            if (border != null)
-                            {
-                                border.BackgroundColor = Colors.Transparent;
-                                border.Stroke = Colors.Gray;
-                            }
-                        }
-                    }
-
-                    // Reset result label
-                    ResultLabel.Text = "Results will appear here";
+                    ResetAllEntries();
+                    ApplyTheme();
+                    Row1Letter1?.Focus();
                 });
 
                 if (choice == "Start New Game")
@@ -118,13 +100,6 @@ namespace Wordle
                         await File.WriteAllTextAsync(historyPath, JsonSerializer.Serialize(newHistory));
                     }
                 }
-
-                // Final UI updates
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    ApplyTheme();
-                    Row1Letter1?.Focus();
-                });
             }
             catch (Exception ex)
             {
@@ -943,7 +918,6 @@ namespace Wordle
                 System.Diagnostics.Debug.WriteLine($"Error in OnGuessSubmitted: {ex.Message}");
             }
         }
-
 
         private void FocusNextRow()
         {
