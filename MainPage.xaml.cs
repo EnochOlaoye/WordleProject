@@ -792,9 +792,8 @@ namespace Wordle
         {
             try
             {
-                // Get current player name
                 string currentPlayer = await Player.GetPlayerName();
-                var save = await SaveGame.Load(currentPlayer); // Modify to pass player name
+                var save = await SaveGame.Load(currentPlayer);
                 save.GamesPlayed++;
 
                 if (won)
@@ -802,30 +801,40 @@ namespace Wordle
                     save.GamesWon++;
                     save.CurrentStreak++;
                     save.MaxStreak = Math.Max(save.MaxStreak, save.CurrentStreak);
-                }
-                else
-                {
-                    save.CurrentStreak = 0;
-                }
-
-                save.Save(currentPlayer); // Modify to pass player name
-
-                // Add game attempt to history
-                save.History.AddAttempt(new GameAttempt(targetWord, count, GetGuessHistory()));
-
-                if (won)
-                {
                     ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
                 }
                 else
                 {
+                    save.CurrentStreak = 0;
                     ResultLabel.Text = $"Bad luck! The word was {targetWord}";
                 }
+
+                // Create and add the game attempt
+                var attempt = new GameAttempt
+                {
+                    Word = targetWord,
+                    GuessCount = count,
+                    GuessHistory = GetGuessHistory()
+                };
+
+                // Initialize History if null
+                if (save.History == null)
+                {
+                    save.History = new PlayerHistory { PlayerName = currentPlayer };
+                }
+
+                // Add the attempt to history
+                save.History.AddAttempt(attempt);
+
+                // Save the updated game state
+                save.Save(currentPlayer);
+
                 DisableAllEntries();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in EndGame: {ex.Message}");
+                await DisplayAlert("Error", "Failed to save game progress", "OK");
             }
         }
 
@@ -848,23 +857,46 @@ namespace Wordle
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("View Progress clicked");
-                if (Navigation != null)
+                string currentPlayer = await Player.GetPlayerName();
+                var save = await SaveGame.Load(currentPlayer);
+
+                string historyText = $"Player: {currentPlayer}\n\n";
+                historyText += $"Games Played: {save?.GamesPlayed ?? 0}\n";
+                historyText += $"Games Won: {save?.GamesWon ?? 0}\n";
+
+                // Calculate win percentage
+                double winPercentage = 0;
+                if (save?.GamesPlayed > 0)
                 {
-                    var savePage = new SaveGamePage();
-                    await Navigation.PushAsync(savePage);
-                    System.Diagnostics.Debug.WriteLine("Navigation completed");
+                    winPercentage = (double)save.GamesWon / save.GamesPlayed * 100;
+                }
+                historyText += $"Win Rate: {winPercentage:F1}%\n\n";
+
+                // Always show Game History section
+                historyText += "Game History:\n---------------\n";
+
+                if (save?.History != null && save.History.GetSortedAttempts().Any())
+                {
+                    foreach (var game in save.History.GetSortedAttempts())
+                    {
+                        historyText += $"Word: {game.Word}\n";
+                        historyText += $"Guesses: {game.GuessCount}\n";
+                        historyText += "---------------\n";
+                    }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Navigation is null");
-                    await DisplayAlert("Error", "Navigation not available", "OK");
+                    historyText += "No games played yet!\n";
+                    historyText += "Play your first game to start building your history.\n";
+                    historyText += "---------------\n";
                 }
+
+                await DisplayAlert("Player Progress", historyText, "OK");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
-                await DisplayAlert("Error", $"Navigation failed: {ex.Message}", "OK");
+                System.Diagnostics.Debug.WriteLine($"Error showing history: {ex.Message}");
+                await DisplayAlert("Error", "Could not load game history", "OK");
             }
         }
 
@@ -1213,6 +1245,22 @@ namespace Wordle
             if (shouldExit)
             {
                 Application.Current?.Quit();
+            }
+        }
+
+        public class Achievements
+        {
+            public bool FirstWin { get; set; }
+            public bool WinStreak3 { get; set; }
+            public bool GuessedInTwo { get; set; }
+            public bool PlayedTenGames { get; set; }
+
+            public void CheckAchievements(SaveGame save)
+            {
+                if (save.GamesWon > 0) FirstWin = true;
+                if (save.CurrentStreak >= 3) WinStreak3 = true;
+                if (save.History?.GetSortedAttempts()?.Any(g => g.GuessCount <= 2) == true) GuessedInTwo = true;
+                if (save.GamesPlayed >= 10) PlayedTenGames = true;
             }
         }
     }

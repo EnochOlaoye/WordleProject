@@ -8,23 +8,18 @@ namespace Wordle
 {
     public class GameAttempt
     {
-        public string Word { get; set; }
+        public string Word { get; set; } = string.Empty;
         public int GuessCount { get; set; }
-        public DateTime DatePlayed { get; set; }
-        public List<string> GuessHistory { get; set; }
+        public DateTime DatePlayed { get; set; } = DateTime.Now;
+        public List<string> GuessHistory { get; set; } = new List<string>();
 
-        public GameAttempt()
-        {
-            DatePlayed = DateTime.Now;
-            GuessHistory = new List<string>();
-        }
-
-        public GameAttempt(string word, int guesses, List<string> history)
+        public GameAttempt(string word, int guessCount, List<string> guessHistory)
         {
             Word = word;
-            GuessCount = guesses;
-            GuessHistory = history ?? new List<string>();
-            DatePlayed = DateTime.Now;
+            GuessCount = guessCount;
+            GuessHistory = guessHistory;
         }
+
+        public GameAttempt() { }
     }
 }
