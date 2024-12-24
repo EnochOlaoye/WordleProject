@@ -22,7 +22,7 @@ namespace Wordle
 
         public IEnumerable<GameAttempt> GetSortedAttempts()
         {
-            return Attempts.OrderByDescending(a => a.Timestamp);
+            return Attempts.OrderByDescending(a => a.DatePlayed);
         }
 
         // Save history to JSON file with player name

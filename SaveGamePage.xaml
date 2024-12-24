@@ -2,92 +2,159 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Wordle.SaveGamePage">
-    <VerticalStackLayout Spacing="20" Padding="20">
+	<ScrollView>
+		<VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center">
 
-        <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
-            <Label Text="Light Mode" 
-                   x:Name="LightModeLabel"
-                   VerticalOptions="Center"/>
+			<Label
+                x:Name="PlayerNameLabel"
+                Text="Player: "
+                SemanticProperties.HeadingLevel="Level1"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-            <Label Text="Dark Mode" 
-                   x:Name="DarkModeLabel"
-                   VerticalOptions="Center"/>
+			<Label
+                x:Name="YourProgressLabel"
+                Text="Your Progress"
+                SemanticProperties.HeadingLevel="Level1"
+                FontSize="24"
+                HorizontalOptions="Center" />
 
-            <ImageButton x:Name="ThemeButton"
-                        Source="lightbulb.png"
-                        HeightRequest="30"
-                        WidthRequest="30"
-                        Clicked="OnThemeToggleClicked"/>
-        </HorizontalStackLayout>
+			<Label
+                x:Name="GamesPlayedTitle"
+                Text="Games Played"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-		<Label x:Name="PlayerNameLabel"
-			  FontSize="18"
-			  HorizontalOptions="Center"
-			  Margin="0,0,0,10"/>
+			<Label
+                x:Name="GamesPlayedLabel"
+                Text="0"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-        <Label Text="Your Progress"
-               x:Name="YourProgressLabel"
-               FontSize="24"
-               HorizontalOptions="Center"/>
+			<Label
+                x:Name="GamesWonTitle"
+                Text="Games Won"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-        <Grid ColumnSpacing="20" RowSpacing="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+			<Label
+                x:Name="GamesWonLabel"
+                Text="0"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-            <Label Text="Games Played:" x:Name="GamesPlayedTitle" Grid.Row="0" Grid.Column="0"/>
-            <Label x:Name="GamesPlayedLabel" Grid.Row="0" Grid.Column="1"/>
+			<Label
+                x:Name="WinPercentageLabel"
+                Text="Win %: 0.0%"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-            <Label Text="Games Won:" x:Name="GamesWonTitle" Grid.Row="1" Grid.Column="0"/>
-            <Label x:Name="GamesWonLabel" Grid.Row="1" Grid.Column="1"/>
+			<Label
+                x:Name="CurrentStreakTitle"
+                Text="Current Streak"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-            <Label Text="Current Streak:" x:Name="CurrentStreakTitle" Grid.Row="2" Grid.Column="0"/>
-            <Label x:Name="CurrentStreakLabel" Grid.Row="2" Grid.Column="1"/>
+			<Label
+                x:Name="CurrentStreakLabel"
+                Text="0"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-            <Label Text="Max Streak:" x:Name="MaxStreakTitle" Grid.Row="3" Grid.Column="0"/>
-            <Label x:Name="MaxStreakLabel" Grid.Row="3" Grid.Column="1"/>
-        </Grid>
+			<Label
+                x:Name="MaxStreakTitle"
+                Text="Max Streak"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-        <Label Text="Game History"
-               x:Name="HistoryLabel"
-               FontSize="20"
-               HorizontalOptions="Center"
-               Margin="0,20,0,0"/>
+			<Label
+                x:Name="MaxStreakLabel"
+                Text="0"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-        <CollectionView x:Name="HistoryList"
-						ItemsSource="{Binding History.GetSortedAttempts()}"
-                        HeightRequest="200">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame Margin="5" Padding="10">
-                        <Grid RowSpacing="5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+			<Label
+                x:Name="HistoryLabel"
+                Text="Game History"
+                SemanticProperties.HeadingLevel="Level2"
+                FontSize="18"
+                HorizontalOptions="Center" />
 
-                            <Label Text="{Binding Timestamp, StringFormat='{0:MM/dd/yyyy HH:mm}'}"
-                                   Grid.Row="0"/>
-                            <Label Text="{Binding CorrectWord, StringFormat='Word: {0}'}"
-                                   Grid.Row="1"/>
-                            <Label Text="{Binding GuessCount, StringFormat='Guesses: {0}'}"
-                                   Grid.Row="2"/>
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-        
-        <Button Text="Back to Game"
+			<CollectionView
+                x:Name="HistoryList"
+                SelectionMode="None"
+                Margin="10">
+				<CollectionView.ItemTemplate>
+					<DataTemplate>
+						<Frame Margin="5" BorderColor="Gray" Padding="10">
+							<VerticalStackLayout>
+								<Label
+                                    Text="{Binding Word}"
+                                    FontSize="18"
+                                    HorizontalOptions="Center"/>
+								<Label
+                                    Text="{Binding GuessCount, StringFormat='Guesses: {0}'}"
+                                    FontSize="14"
+                                    HorizontalOptions="Center"/>
+								<Label
+                                    Text="{Binding DatePlayed, StringFormat='Played: {0:d}'}"
+                                    FontSize="14"
+                                    HorizontalOptions="Center"/>
+								<CollectionView
+                                    ItemsSource="{Binding GuessHistory}"
+                                    SelectionMode="None">
+									<CollectionView.ItemTemplate>
+										<DataTemplate>
+											<Label
+                                                Text="{Binding}"
+                                                FontSize="12"
+                                                HorizontalOptions="Center"/>
+										</DataTemplate>
+									</CollectionView.ItemTemplate>
+								</CollectionView>
+							</VerticalStackLayout>
+						</Frame>
+					</DataTemplate>
+				</CollectionView.ItemTemplate>
+			</CollectionView>
+
+			<HorizontalStackLayout HorizontalOptions="Center">
+				<Label
+                    x:Name="LightModeLabel"
+                    Text="Switch to Light Mode"
+                    FontSize="16"
+                    Margin="0,0,10,0" />
+				<Label
+                    x:Name="DarkModeLabel"
+                    Text="Switch to Dark Mode"
+                    FontSize="16"
+                    Margin="0,0,10,0" />
+				<Image
+                    x:Name="ThemeButton"
+                    Source="darkbulb.png"
+                    HeightRequest="30"
+                    WidthRequest="30">
+					<Image.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnThemeToggleClicked"/>
+					</Image.GestureRecognizers>
+				</Image>
+			</HorizontalStackLayout>
+
+			<Button
+                Text="Back to Game"
+                SemanticProperties.Hint="Returns to the game"
                 Clicked="OnBackToGameClicked"
-                HorizontalOptions="Center"/>
-    </VerticalStackLayout>
+                HorizontalOptions="Center" />
+
+		</VerticalStackLayout>
+	</ScrollView>
 </ContentPage> 

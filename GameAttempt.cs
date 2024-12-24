@@ -8,25 +8,23 @@ namespace Wordle
 {
     public class GameAttempt
     {
-        public string CorrectWord { get; set; }
-        public int AttemptCount { get; set; }
+        public string Word { get; set; }
+        public int GuessCount { get; set; }
+        public DateTime DatePlayed { get; set; }
         public List<string> GuessHistory { get; set; }
-        public DateTime Timestamp { get; set; }
 
-        public GameAttempt(string correctWord, int attemptCount, List<string> guessHistory)
-        {
-            CorrectWord = correctWord ?? string.Empty;
-            AttemptCount = attemptCount;
-            GuessHistory = guessHistory ?? new List<string>();
-            Timestamp = DateTime.Now;
-        }
-
-        // Add parameterless constructor for deserialization
         public GameAttempt()
         {
-            CorrectWord = string.Empty;
+            DatePlayed = DateTime.Now;
             GuessHistory = new List<string>();
-            Timestamp = DateTime.Now;
+        }
+
+        public GameAttempt(string word, int guesses, List<string> history)
+        {
+            Word = word;
+            GuessCount = guesses;
+            GuessHistory = history ?? new List<string>();
+            DatePlayed = DateTime.Now;
         }
     }
 }

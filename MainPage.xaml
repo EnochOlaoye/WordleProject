@@ -493,6 +493,19 @@
                 HorizontalOptions="Center"
                 Margin="10"/>
 
+            <Button x:Name="HintButton" 
+                Text="Get Hint" 
+                Clicked="OnHintButtonClicked"
+                IsVisible="False"
+                Margin="10"/>
+
+            <Button x:Name="ExitButton" 
+                Text="Exit Game" 
+                Clicked="OnExitButtonClicked"
+                BackgroundColor="Red"
+                TextColor="White"
+                Margin="10"/>
+
         </StackLayout>
     </VerticalStackLayout>
 

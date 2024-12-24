@@ -30,6 +30,18 @@ namespace Wordle
             set => Preferences.Default.Set("IsDarkMode", value);
         }
 
+        private enum GameDifficulty
+        {
+            Easy,
+            Medium,
+            Hard
+        }
+
+        private GameDifficulty currentDifficulty = GameDifficulty.Medium;
+
+        private int hintsRemaining = 2; // Track available hints
+        private bool usedHintLastTurn = false; // Prevent consecutive hint usage
+
         public MainPage()
         {
             InitializeComponent();
@@ -43,15 +55,14 @@ namespace Wordle
                 string choice;
                 do
                 {
-                    // Remove the Cancel option by setting it to null
                     choice = await DisplayActionSheet(
                         "Welcome to Wordle!",
                         null,  // No cancel option
                         null,  // No destruction option
                         "Continue Previous Game",
+                        "Load Saved Game",
                         "Start New Game");
 
-                    // Keep showing the prompt until user makes a valid choice
                     if (string.IsNullOrEmpty(choice))
                     {
                         await DisplayAlert("Required", "Please select an option to continue", "OK");
@@ -59,47 +70,131 @@ namespace Wordle
 
                 } while (string.IsNullOrEmpty(choice));
 
+                // Select difficulty before proceeding
+                string difficultyChoice = await DisplayActionSheet(
+                    "Select Difficulty",
+                    null,  // No cancel option
+                    null,  // No destruction option
+                    "Easy Mode (8 guesses, with hints)",
+                    "Medium Mode (Standard 6 guesses)",
+                    "Hard Mode (4 guesses, must reuse correct letters)");
+
+                switch (difficultyChoice)
+                {
+                    case "Easy Mode (8 guesses, with hints)":
+                        currentDifficulty = GameDifficulty.Easy;
+                        count = 1;
+                        MaxGuesses = 8;
+                        break;
+                    case "Medium Mode (Standard 6 guesses)":
+                        currentDifficulty = GameDifficulty.Medium;
+                        count = 1;
+                        MaxGuesses = 6;
+                        break;
+                    case "Hard Mode (4 guesses, must reuse correct letters)":
+                        currentDifficulty = GameDifficulty.Hard;
+                        count = 1;
+                        MaxGuesses = 4;
+                        break;
+                }
+
                 // Initialize game first
                 await LoadWordsAsync();
                 SelectRandomWord();
-                count = 1;
 
-                // Reset and initialize UI
+                // Rest of your existing switch statement for game type...
+                switch (choice)
+                {
+                    case "Load Saved Game":
+                        var players = await Player.GetExistingPlayers();
+                        if (players.Count == 0)
+                        {
+                            await DisplayAlert("No Saved Games", "No saved games found. Starting new game.", "OK");
+                            await CreateNewPlayer();
+                        }
+                        else
+                        {
+                            string selectedPlayer = await DisplayActionSheet(
+                                "Select Saved Game",
+                                "Cancel",
+                                null,
+                                players.ToArray());
+
+                            if (!string.IsNullOrEmpty(selectedPlayer) && selectedPlayer != "Cancel")
+                            {
+                                await Player.SavePlayerName(selectedPlayer);
+                                var save = await SaveGame.Load(selectedPlayer);
+                                await DisplayAlert("Game Loaded",
+                                    $"Welcome back, {selectedPlayer}!\n" +
+                                    $"Games Won: {save.GamesWon}\n" +
+                                    $"Current Streak: {save.CurrentStreak}",
+                                    "OK");
+                            }
+                            else
+                            {
+                                // If user cancels loading, default to new game
+                                await CreateNewPlayer();
+                            }
+                        }
+                        break;
+
+                    case "Start New Game":
+                        string newName = await DisplayPromptAsync(
+                            "New Game",
+                            "Enter player name:",
+                            maxLength: 20,
+                            keyboard: Keyboard.Text);
+
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            await Player.SavePlayerName(newName);
+                            var newSave = new SaveGame
+                            {
+                                GamesPlayed = 0,
+                                GamesWon = 0,
+                                CurrentStreak = 0,
+                                MaxStreak = 0,
+                                GuessDistribution = new Dictionary<int, int>(),
+                                History = new PlayerHistory { PlayerName = newName }
+                            };
+                            newSave.Save(newName);
+
+                            var newHistory = new PlayerHistory { PlayerName = newName };
+                            string historyPath = Path.Combine(FileSystem.AppDataDirectory, $"{newName}_history.json");
+                            await File.WriteAllTextAsync(historyPath, JsonSerializer.Serialize(newHistory));
+                        }
+                        break;
+
+                    // Continue Previous Game just uses existing save
+                    case "Continue Previous Game":
+                        var currentPlayer = await Player.GetPlayerName();
+                        if (string.IsNullOrEmpty(currentPlayer))
+                        {
+                            await DisplayAlert("No Previous Game", "No previous game found. Starting new game.", "OK");
+                            await CreateNewPlayer();
+                        }
+                        else
+                        {
+                            var currentSave = await SaveGame.Load(currentPlayer);
+                            await DisplayAlert("Game Continued",
+                                $"Welcome back, {currentPlayer}!\n" +
+                                $"Games Won: {currentSave.GamesWon}\n" +
+                                $"Current Streak: {currentSave.CurrentStreak}",
+                                "OK");
+                        }
+                        break;
+                }
+
+                // Update UI to show current difficulty
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    // Reset all entries and borders
                     ResetAllEntries();
                     ApplyTheme();
                     Row1Letter1?.Focus();
+                    ResultLabel.Text = $"Playing on {currentDifficulty} Mode";
                 });
 
-                if (choice == "Start New Game")
-                {
-                    string newName = await DisplayPromptAsync(
-                        "New Game",
-                        "Enter player name:",
-                        maxLength: 20,
-                        keyboard: Keyboard.Text);
-
-                    if (!string.IsNullOrEmpty(newName))
-                    {
-                        await Player.SavePlayerName(newName);
-                        var newSave = new SaveGame
-                        {
-                            GamesPlayed = 0,
-                            GamesWon = 0,
-                            CurrentStreak = 0,
-                            MaxStreak = 0,
-                            GuessDistribution = new Dictionary<int, int>(),
-                            History = new PlayerHistory { PlayerName = newName }
-                        };
-                        newSave.Save();
-
-                        var newHistory = new PlayerHistory { PlayerName = newName };
-                        string historyPath = Path.Combine(FileSystem.AppDataDirectory, $"{newName}_history.json");
-                        await File.WriteAllTextAsync(historyPath, JsonSerializer.Serialize(newHistory));
-                    }
-                }
+                UpdateUIForDifficulty();
             }
             catch (Exception ex)
             {
@@ -242,7 +337,7 @@ namespace Wordle
                             GuessDistribution = new Dictionary<int, int>(),
                             History = new PlayerHistory { PlayerName = newName }
                         };
-                        newSave.Save();
+                        newSave.Save(newName);
 
                         // Create fresh history file
                         var newHistory = new PlayerHistory { PlayerName = newName };
@@ -298,7 +393,7 @@ namespace Wordle
                 GuessDistribution = new Dictionary<int, int>(),
                 History = new PlayerHistory { PlayerName = name }
             };
-            newSave.Save();
+            newSave.Save(name);
 
             // Create fresh history
             var newHistory = new PlayerHistory { PlayerName = name };
@@ -326,7 +421,7 @@ namespace Wordle
             else if (!string.IsNullOrEmpty(result) && result != "Cancel")
             {
                 await Player.SavePlayerName(result);
-                var save = await SaveGame.Load();
+                var save = await SaveGame.Load(result);
                 await DisplayAlert("Player Switched",
                     $"Welcome back, {result}!\n" +
                     $"Games Won: {save.GamesWon}",
@@ -697,7 +792,9 @@ namespace Wordle
         {
             try
             {
-                var save = await SaveGame.Load();
+                // Get current player name
+                string currentPlayer = await Player.GetPlayerName();
+                var save = await SaveGame.Load(currentPlayer); // Modify to pass player name
                 save.GamesPlayed++;
 
                 if (won)
@@ -711,7 +808,7 @@ namespace Wordle
                     save.CurrentStreak = 0;
                 }
 
-                save.Save();
+                save.Save(currentPlayer); // Modify to pass player name
 
                 // Add game attempt to history
                 save.History.AddAttempt(new GameAttempt(targetWord, count, GetGuessHistory()));
@@ -900,7 +997,7 @@ namespace Wordle
                     return;
                 }
 
-                if (count >= 6)
+                if (count >= MaxGuesses)  // Use MaxGuesses instead of hardcoded 6
                 {
                     EndGame(false);
                     return;
@@ -912,6 +1009,9 @@ namespace Wordle
                 {
                     nextEntry.Focus();
                 }
+
+                // Reset consecutive hint flag when a guess is submitted
+                usedHintLastTurn = false;
             }
             catch (Exception ex)
             {
@@ -989,6 +1089,131 @@ namespace Wordle
 
             // Focus the first entry
             Row1Letter1?.Focus();
+
+            // Reset hints if in Easy mode
+            if (currentDifficulty == GameDifficulty.Easy)
+            {
+                ResetHints();
+            }
+        }
+
+        // Add property for maximum guesses
+        private int MaxGuesses { get; set; } = 6;
+
+        private async void OnHintButtonClicked(object sender, EventArgs e)
+        {
+            if (currentDifficulty != GameDifficulty.Easy)
+            {
+                await DisplayAlert("Hints Disabled", "Hints are only available in Easy Mode", "OK");
+                return;
+            }
+
+            if (hintsRemaining <= 0)
+            {
+                await DisplayAlert("No Hints", "You've used all your hints for this game!", "OK");
+                return;
+            }
+
+            if (usedHintLastTurn)
+            {
+                await DisplayAlert("Hint Blocked", "You can't use hints on consecutive guesses", "OK");
+                return;
+            }
+
+            try
+            {
+                // Find a random position that hasn't been revealed yet
+                var availablePositions = new List<int>();
+                for (int i = 0; i < 5; i++)  // Now check all positions
+                {
+                    var entry = this.FindByName<Entry>($"Row{count}Letter{i + 1}");
+                    if (entry?.Text != targetWord[i].ToString())
+                    {
+                        availablePositions.Add(i);
+                    }
+                }
+
+                if (availablePositions.Count > 0)
+                {
+                    Random random = new Random();
+                    int position = availablePositions[random.Next(availablePositions.Count)];
+
+                    var entry = this.FindByName<Entry>($"Row{count}Letter{position + 1}");
+                    var border = this.FindByName<Border>($"Border{count}Letter{position + 1}");
+
+                    if (entry != null && border != null)
+                    {
+                        entry.Text = targetWord[position].ToString();
+                        entry.IsEnabled = false;
+                        entry.TextColor = Colors.White;
+                        border.BackgroundColor = correctColor;
+
+                        hintsRemaining--;
+                        usedHintLastTurn = true;
+
+                        HintButton.Text = $"Get Hint ({hintsRemaining} left)";
+                        await DisplayAlert("Hint Used", $"Letter {position + 1} is '{targetWord[position]}'\nHints remaining: {hintsRemaining}", "OK");
+                    }
+                }
+                else
+                {
+                    await DisplayAlert("No More Hints", "All letters have been revealed!", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error using hint: {ex.Message}");
+                await DisplayAlert("Error", "Failed to show hint", "OK");
+            }
+        }
+
+        private void UpdateUIForDifficulty()
+        {
+            switch (currentDifficulty)
+            {
+                case GameDifficulty.Easy:
+                    MaxGuesses = 8;
+                    hintsRemaining = 2;
+                    HintButton.IsVisible = true;
+                    ResultLabel.Text = $"Easy Mode: {hintsRemaining} hints remaining";
+                    break;
+                case GameDifficulty.Medium:
+                    MaxGuesses = 6;
+                    hintsRemaining = 0;
+                    HintButton.IsVisible = false;
+                    ResultLabel.Text = "Medium Mode: Standard rules";
+                    break;
+                case GameDifficulty.Hard:
+                    MaxGuesses = 4;
+                    hintsRemaining = 0;
+                    HintButton.IsVisible = false;
+                    ResultLabel.Text = "Hard Mode: Must use correct letters";
+                    break;
+            }
+        }
+
+        private void ResetHints()
+        {
+            hintsRemaining = 2;
+            usedHintLastTurn = false;
+            if (HintButton != null)
+            {
+                HintButton.Text = $"Get Hint ({hintsRemaining} left)";
+            }
+        }
+
+        private async void OnExitButtonClicked(object sender, EventArgs e)
+        {
+            bool shouldExit = await DisplayAlert(
+                "Exit Game",
+                "Are you sure you want to exit the game?",
+                "Yes",
+                "No");
+
+            if (shouldExit)
+            {
+                Application.Current?.Quit();
+            }
         }
     }
 

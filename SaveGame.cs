@@ -1,9 +1,5 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-using System.Text.Json;
+﻿using System.Text.Json;
+using System.IO;
 
 namespace Wordle
 {
@@ -17,6 +13,9 @@ namespace Wordle
         public Dictionary<int, int> GuessDistribution { get; set; }
         public PlayerHistory History { get; set; }
 
+        // Add a property to store the current player's name
+        private string CurrentPlayer { get; set; }
+
         // Calculate win percentage
         public double WinPercentage => GamesPlayed > 0 ? (double)GamesWon / GamesPlayed * 100 : 0;
 
@@ -25,33 +24,37 @@ namespace Wordle
         {
             GuessDistribution = new Dictionary<int, int>();
             History = new PlayerHistory();
+            CurrentPlayer = "Player"; // Default value
         }
 
-        public static async Task<SaveGame> Load()
+        public void Save(string playerName)
         {
-            string saveJson = Preferences.Default.Get("SaveGame", "");
-            if (string.IsNullOrEmpty(saveJson))
+            string savePath = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
+            string jsonString = JsonSerializer.Serialize(this);
+            File.WriteAllText(savePath, jsonString);
+        }
+
+        public static async Task<SaveGame> Load(string playerName)
+        {
+            string savePath = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
+
+            if (!File.Exists(savePath))
             {
-                var newSave = new SaveGame();
-                newSave.History = await PlayerHistory.Load();
-                return newSave;
+                return new SaveGame
+                {
+                    History = new PlayerHistory { PlayerName = playerName }
+                };
             }
-            var save = JsonSerializer.Deserialize<SaveGame>(saveJson) ?? new SaveGame();
-            save.History = await PlayerHistory.Load();
-            return save;
-        }
 
-        // Save game data to device storage
-        public void Save()
-        {
-            string saveJson = JsonSerializer.Serialize(this);
-            Preferences.Default.Set("SaveGame", saveJson);
+            string jsonString = await File.ReadAllTextAsync(savePath);
+            return JsonSerializer.Deserialize<SaveGame>(jsonString) ?? new SaveGame();
         }
 
         // Update game statistics after a game ends
-        public void UpdateStats(bool won, int guesses)
+        public void UpdateStats(bool won, int guesses, string playerName)
         {
             GamesPlayed++;
+            CurrentPlayer = playerName;
 
             if (won)
             {
@@ -70,14 +73,14 @@ namespace Wordle
                 CurrentStreak = 0;
             }
 
-            Save();
+            Save(playerName);
         }
 
-        public void AddGameAttempt(string word, int guesses, List<string> history)
+        public void AddGameAttempt(string word, int guesses, List<string> history, string playerName)
         {
             var attempt = new GameAttempt(word, guesses, history);
             History.AddAttempt(attempt);
-            Save();
+            Save(playerName);
         }
     }
 }

@@ -5,13 +5,13 @@ using System.Linq;
 
 namespace Wordle;
 
-
 public partial class SaveGamePage : ContentPage
 {
     private readonly Color darkModeBackground = Colors.Black;
     private readonly Color darkModeForeground = Colors.White;
     private readonly Color lightModeBackground = Colors.White;
     private readonly Color lightModeForeground = Colors.Black;
+    private SaveGame currentSave = new SaveGame();
 
     public SaveGamePage()
     {
@@ -91,16 +91,21 @@ public partial class SaveGamePage : ContentPage
     {
         try
         {
-            var save = await SaveGame.Load();
+            string currentPlayer = await Player.GetPlayerName();
+            currentSave = await SaveGame.Load(currentPlayer);
 
-            GamesPlayedLabel.Text = save.GamesPlayed.ToString();
-            GamesWonLabel.Text = save.GamesWon.ToString();
-            CurrentStreakLabel.Text = save.CurrentStreak.ToString();
-            MaxStreakLabel.Text = save.MaxStreak.ToString();
+            GamesPlayedLabel.Text = currentSave.GamesPlayed.ToString();
+            GamesWonLabel.Text = currentSave.GamesWon.ToString();
+            double winPercentage = currentSave.GamesPlayed > 0
+                ? (double)currentSave.GamesWon / currentSave.GamesPlayed * 100
+                : 0;
+            WinPercentageLabel.Text = $"Win %: {winPercentage:F1}%";
+            CurrentStreakLabel.Text = currentSave.CurrentStreak.ToString();
+            MaxStreakLabel.Text = currentSave.MaxStreak.ToString();
 
-            if (save.History != null)
+            if (currentSave.History != null)
             {
-                HistoryList.ItemsSource = save.History.GetSortedAttempts();
+                HistoryList.ItemsSource = currentSave.History.GetSortedAttempts();
             }
         }
         catch (Exception ex)
@@ -119,7 +124,8 @@ public partial class SaveGamePage : ContentPage
     {
         try
         {
-            var save = await SaveGame.Load();
+            string currentPlayer = await Player.GetPlayerName();
+            var save = await SaveGame.Load(currentPlayer);
 
             GamesPlayedLabel.Text = save.GamesPlayed.ToString();
             GamesWonLabel.Text = save.GamesWon.ToString();
@@ -136,4 +142,41 @@ public partial class SaveGamePage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Error loading progress: {ex.Message}");
         }
     }
+
+    private async void LoadSaveData()
+    {
+        try
+        {
+            // Get current player name
+            string currentPlayer = await Player.GetPlayerName();
+
+            // Load save data for current player
+            currentSave = await SaveGame.Load(currentPlayer);
+
+            // Update UI with player stats
+            GamesPlayedLabel.Text = $"Games Played: {currentSave.GamesPlayed}";
+            GamesWonLabel.Text = $"Games Won: {currentSave.GamesWon}";
+            WinPercentageLabel.Text = $"Win %: {CalculateWinPercentage():F1}%";
+            CurrentStreakLabel.Text = $"Current Streak: {currentSave.CurrentStreak}";
+            MaxStreakLabel.Text = $"Max Streak: {currentSave.MaxStreak}";
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", "Failed to load save data", "OK");
+            System.Diagnostics.Debug.WriteLine($"Error loading save data: {ex.Message}");
+        }
+    }
+
+    private double CalculateWinPercentage()
+    {
+        if (currentSave.GamesPlayed == 0) return 0;
+        return (double)currentSave.GamesWon / currentSave.GamesPlayed * 100;
+    }
+
+    private async void OnBackButtonClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+
+
 }
