@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Linq;
+using System.IO;
 
 namespace Wordle;
 
@@ -178,5 +179,70 @@ public partial class SaveGamePage : ContentPage
         await Navigation.PopAsync();
     }
 
+    private async void OnManagePlayersClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var players = await Player.GetExistingPlayers();
+            if (players.Count == 0)
+            {
+                await DisplayAlert("No Saved Games", "There are no saved games to manage.", "OK");
+                return;
+            }
+
+            string action = await DisplayActionSheet(
+                "Select Player to Delete",
+                "Cancel",
+                null,
+                players.ToArray());
+
+            if (!string.IsNullOrEmpty(action) && action != "Cancel")
+            {
+                bool confirm = await DisplayAlert(
+                    "Delete Save Game",
+                    $"Are you sure you want to delete {action}'s save game? This cannot be undone.",
+                    "Yes, Delete",
+                    "Cancel");
+
+                if (confirm)
+                {
+                    string currentPlayer = await Player.GetPlayerName();
+
+                    // Delete save game file
+                    string savePath = Path.Combine(FileSystem.AppDataDirectory, $"{action}_save.json");
+                    if (File.Exists(savePath))
+                        File.Delete(savePath);
+
+                    // Delete history file
+                    string historyPath = Path.Combine(FileSystem.AppDataDirectory, $"{action}_history.json");
+                    if (File.Exists(historyPath))
+                        File.Delete(historyPath);
+
+                    await DisplayAlert("Success", $"Deleted save game for {action}", "OK");
+
+                    // If current player was deleted, create new save
+                    if (action == currentPlayer)
+                    {
+                        var newSave = new SaveGame
+                        {
+                            GamesPlayed = 0,
+                            GamesWon = 0,
+                            CurrentStreak = 0,
+                            MaxStreak = 0,
+                            GuessDistribution = new Dictionary<int, int>(),
+                            History = new PlayerHistory { PlayerName = currentPlayer }
+                        };
+                        newSave.Save(currentPlayer);
+                        await LoadProgressAsync(); // Reload the page
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error managing players: {ex.Message}");
+            await DisplayAlert("Error", "Failed to manage saved games", "OK");
+        }
+    }
 
 }
