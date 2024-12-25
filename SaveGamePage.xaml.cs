@@ -220,20 +220,40 @@ public partial class SaveGamePage : ContentPage
 
                     await DisplayAlert("Success", $"Deleted save game for {action}", "OK");
 
-                    // If current player was deleted, create new save
+                    // If current player was deleted, switch to another player or create new one
                     if (action == currentPlayer)
                     {
-                        var newSave = new SaveGame
+                        // Get remaining players
+                        var remainingPlayers = await Player.GetExistingPlayers();
+
+                        if (remainingPlayers.Count > 0)
                         {
-                            GamesPlayed = 0,
-                            GamesWon = 0,
-                            CurrentStreak = 0,
-                            MaxStreak = 0,
-                            GuessDistribution = new Dictionary<int, int>(),
-                            History = new PlayerHistory { PlayerName = currentPlayer }
-                        };
-                        newSave.Save(currentPlayer);
-                        await LoadProgressAsync(); // Reload the page
+                            // Switch to first available player
+                            await Player.SavePlayerName(remainingPlayers[0]);
+                            var existingSave = await SaveGame.Load(remainingPlayers[0]);
+                            await LoadProgressAsync();
+                            await DisplayAlert("Player Switched",
+                                $"Switched to existing player: {remainingPlayers[0]}", "OK");
+                        }
+                        else
+                        {
+                            // Create new default player
+                            string newPlayer = "Player";
+                            await Player.SavePlayerName(newPlayer);
+                            var newSave = new SaveGame
+                            {
+                                GamesPlayed = 0,
+                                GamesWon = 0,
+                                CurrentStreak = 0,
+                                MaxStreak = 0,
+                                GuessDistribution = new Dictionary<int, int>(),
+                                History = new PlayerHistory { PlayerName = newPlayer }
+                            };
+                            newSave.Save(newPlayer);
+                            await LoadProgressAsync();
+                            await DisplayAlert("New Player Created",
+                                "Created new default player as no other saves exist", "OK");
+                        }
                     }
                 }
             }

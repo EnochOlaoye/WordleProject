@@ -506,6 +506,10 @@
                 TextColor="White"
                 Margin="10"/>
 
+            <Button Text="Share Results" 
+        Clicked="OnShareResultsClicked"
+        IsEnabled="{Binding IsGameOver}"/>
+
         </StackLayout>
     </VerticalStackLayout>
 

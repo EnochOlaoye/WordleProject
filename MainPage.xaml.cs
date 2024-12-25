@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.Maui.Controls;
 using System.Text.Json;
+using System.Text;
 
 namespace Wordle
 {
@@ -22,6 +23,8 @@ namespace Wordle
         private readonly Color correctColor = Colors.Green;       // Letter is correct and in right position
         private readonly Color presentColor = Colors.Yellow;      // Letter exists but in wrong position
         private readonly Color incorrectColor = Colors.Gray;      // Letter is not in the word
+        private bool won = false;
+        private DateTime gameStartTime;
 
         // Add this static property
         public static bool IsDarkMode
@@ -101,6 +104,7 @@ namespace Wordle
                 // Initialize game first
                 await LoadWordsAsync();
                 SelectRandomWord();
+                gameStartTime = DateTime.Now;
 
                 // Rest of your existing switch statement for game type...
                 switch (choice)
@@ -788,16 +792,18 @@ namespace Wordle
             ResultLabel.Text = "New game started!";
         }
 
-        private async void EndGame(bool won)
+        private async void EndGame(bool isWon)
         {
             try
             {
+                won = isWon;  // Set the won status
+
                 // Get current player name
                 string currentPlayer = await Player.GetPlayerName();
-                var save = await SaveGame.Load(currentPlayer); // Modify to pass player name
+                var save = await SaveGame.Load(currentPlayer);
                 save.GamesPlayed++;
 
-                if (won)
+                if (isWon)
                 {
                     save.GamesWon++;
                     save.CurrentStreak++;
@@ -808,12 +814,12 @@ namespace Wordle
                     save.CurrentStreak = 0;
                 }
 
-                save.Save(currentPlayer); // Modify to pass player name
+                save.Save(currentPlayer);
 
                 // Add game attempt to history
                 save.History.AddAttempt(new GameAttempt(targetWord, count, GetGuessHistory()));
 
-                if (won)
+                if (isWon)
                 {
                     ResultLabel.Text = $"Well done! You found the word in {count} {(count == 1 ? "guess" : "guesses")}!";
                 }
@@ -822,6 +828,10 @@ namespace Wordle
                     ResultLabel.Text = $"Bad luck! The word was {targetWord}";
                 }
                 DisableAllEntries();
+
+                // Check achievements
+                var gameTime = DateTime.Now - gameStartTime;
+                await AchievementManager.CheckAchievements(isWon, count, gameTime);
             }
             catch (Exception ex)
             {
@@ -1214,6 +1224,48 @@ namespace Wordle
             {
                 Application.Current?.Quit();
             }
+        }
+
+        private async void OnShareResultsClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var shareText = GenerateShareText();
+                await Share.RequestAsync(new ShareTextRequest
+                {
+                    Text = shareText,
+                    Title = "My Wordle Results"
+                });
+            }
+            catch (Exception)
+            {
+                await DisplayAlert("Error", "Failed to share results", "OK");
+                System.Diagnostics.Debug.WriteLine("Error sharing results");
+            }
+        }
+
+        private string GenerateShareText()
+        {
+            var result = new StringBuilder();
+            result.AppendLine($"Wordle {(won ? count : "X")}/6");
+
+            // Get current row patterns
+            for (int row = 1; row <= count; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    var border = this.FindByName<Border>($"Border{row}Letter{col}");
+                    if (border.BackgroundColor == correctColor)
+                        result.Append("🟩"); // Green
+                    else if (border.BackgroundColor == presentColor)
+                        result.Append("🟨"); // Yellow
+                    else
+                        result.Append("⬛"); // Black/Gray
+                }
+                result.AppendLine();
+            }
+
+            return result.ToString();
         }
     }
 

@@ -10,8 +10,8 @@ namespace Wordle
         public int GamesWon { get; set; }
         public int CurrentStreak { get; set; }
         public int MaxStreak { get; set; }
-        public Dictionary<int, int> GuessDistribution { get; set; } = new();
-        public PlayerHistory? History { get; set; }
+        public Dictionary<int, int> GuessDistribution { get; set; }
+        public PlayerHistory History { get; set; }
 
         // Add a property to store the current player's name
         private string CurrentPlayer { get; set; }
@@ -29,38 +29,25 @@ namespace Wordle
 
         public void Save(string playerName)
         {
-            try
-            {
-                string path = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
-                string json = JsonSerializer.Serialize(this);
-                File.WriteAllText(path, json);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error saving game: {ex.Message}");
-                throw;
-            }
+            string savePath = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
+            string jsonString = JsonSerializer.Serialize(this);
+            File.WriteAllText(savePath, jsonString);
         }
 
         public static async Task<SaveGame> Load(string playerName)
         {
-            try
-            {
-                string path = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
-                if (!File.Exists(path))
-                {
-                    return new SaveGame { History = new PlayerHistory { PlayerName = playerName } };
-                }
+            string savePath = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_save.json");
 
-                string json = await File.ReadAllTextAsync(path);
-                return JsonSerializer.Deserialize<SaveGame>(json) ??
-                       new SaveGame { History = new PlayerHistory { PlayerName = playerName } };
-            }
-            catch (Exception ex)
+            if (!File.Exists(savePath))
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading save: {ex.Message}");
-                return new SaveGame { History = new PlayerHistory { PlayerName = playerName } };
+                return new SaveGame
+                {
+                    History = new PlayerHistory { PlayerName = playerName }
+                };
             }
+
+            string jsonString = await File.ReadAllTextAsync(savePath);
+            return JsonSerializer.Deserialize<SaveGame>(jsonString) ?? new SaveGame();
         }
 
         // Update game statistics after a game ends
