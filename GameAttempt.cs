@@ -6,20 +6,37 @@ using System.Threading.Tasks;
 
 namespace Wordle
 {
+    public enum GameDifficulty
+    {
+        Easy,
+        Medium,
+        Hard
+    }
+
     public class GameAttempt
     {
-        public string Word { get; set; } = string.Empty;
+        public string Word { get; set; }
         public int GuessCount { get; set; }
-        public DateTime DatePlayed { get; set; } = DateTime.Now;
-        public List<string> GuessHistory { get; set; } = new List<string>();
+        public bool IsWin { get; set; }
+        public DateTime Date { get; set; }
+        public GameDifficulty Difficulty { get; set; }
+        public List<string> Guesses { get; set; } = new List<string>();
 
-        public GameAttempt(string word, int guessCount, List<string> guessHistory)
+        // Default constructor
+        public GameAttempt()
         {
-            Word = word;
-            GuessCount = guessCount;
-            GuessHistory = guessHistory;
+            Date = DateTime.Now;
+            Guesses = new List<string>();
         }
 
-        public GameAttempt() { }
+        // Constructor with parameters
+        public GameAttempt(string word, int guesses, List<string> history)
+        {
+            Word = word;
+            GuessCount = guesses;
+            Guesses = history ?? new List<string>();
+            Date = DateTime.Now;
+            IsWin = true;
+        }
     }
 }

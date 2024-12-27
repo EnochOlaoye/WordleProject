@@ -3,74 +3,45 @@ using System.Text.Json;
 
 namespace Wordle
 {
+    public class GameAttemptWord
+    {
+        public string Word { get; set; }
+        public int GuessCount { get; set; }
+        public DateTime DatePlayed { get; set; }
+        public List<string> GuessHistory { get; set; }
+        public GameDifficulty Difficulty { get; set; }
+
+        public GameAttemptWord(string word, int guesses, List<string> history, GameDifficulty difficulty)
+        {
+            Word = word;
+            GuessCount = guesses;
+            GuessHistory = history ?? new List<string>();
+            DatePlayed = DateTime.Now;
+            Difficulty = difficulty;
+        }
+    }
+
     public class PlayerHistory
     {
         public string PlayerName { get; set; }
-        public ObservableCollection<GameAttempt> Attempts { get; set; }
+        private List<GameAttempt> Attempts { get; set; } = new List<GameAttempt>();
 
         public PlayerHistory()
         {
-            PlayerName = string.Empty;
-            Attempts = new ObservableCollection<GameAttempt>();
+            Attempts = new List<GameAttempt>();
         }
 
         public void AddAttempt(GameAttempt attempt)
         {
-            Attempts.Insert(0, attempt); // Add new attempts at the start
-            Save();
-        }
-
-        public IEnumerable<GameAttempt> GetSortedAttempts()
-        {
-            return Attempts.OrderByDescending(a => a.DatePlayed);
-        }
-
-        // Save history to JSON file with player name
-        public async void Save()
-        {
-            try
+            if (attempt != null)
             {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-                string json = JsonSerializer.Serialize(this, options);
-                string playerName = await Player.GetPlayerName();
-                string path = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_history.json");
-                File.WriteAllText(path, json);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error saving history: {ex.Message}");
+                Attempts.Add(attempt);
             }
         }
 
-        // Load history from JSON file for specific player
-        public static async Task<PlayerHistory> Load()
+        public List<GameAttempt> GetSortedAttempts()
         {
-            try
-            {
-                string playerName = await Player.GetPlayerName();
-                string path = Path.Combine(FileSystem.AppDataDirectory, $"{playerName}_history.json");
-                if (File.Exists(path))
-                {
-                    string json = File.ReadAllText(path);
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    };
-                    var history = JsonSerializer.Deserialize<PlayerHistory>(json, options) ?? new PlayerHistory();
-                    history.PlayerName = playerName;
-                    return history;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error loading history: {ex.Message}");
-            }
-            var newHistory = new PlayerHistory();
-            newHistory.PlayerName = await Player.GetPlayerName();
-            return newHistory;
+            return Attempts?.OrderByDescending(a => a.Date).ToList() ?? new List<GameAttempt>();
         }
     }
 }

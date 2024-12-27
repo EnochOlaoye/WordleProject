@@ -25,6 +25,8 @@ namespace Wordle
         private readonly Color incorrectColor = Colors.Gray;      // Letter is not in the word
         private bool won = false;
         private DateTime gameStartTime;
+        private bool isDailyChallenge = false;
+        private const string DAILY_CHALLENGE_KEY = "DailyChallenge_";
 
         // Add this static property
         public static bool IsDarkMode
@@ -33,12 +35,12 @@ namespace Wordle
             set => Preferences.Default.Set("IsDarkMode", value);
         }
 
-        private enum GameDifficulty
+        /*private enum GameDifficulty
         {
             Easy,
             Medium,
             Hard
-        }
+        }*/
 
         private GameDifficulty currentDifficulty = GameDifficulty.Medium;
 
@@ -64,7 +66,8 @@ namespace Wordle
                         null,  // No destruction option
                         "Continue Previous Game",
                         "Load Saved Game",
-                        "Start New Game");
+                        "Start New Game",
+                        "Daily Challenge");
 
                     if (string.IsNullOrEmpty(choice))
                     {
@@ -73,42 +76,47 @@ namespace Wordle
 
                 } while (string.IsNullOrEmpty(choice));
 
-                // Select difficulty before proceeding
-                string difficultyChoice = await DisplayActionSheet(
-                    "Select Difficulty",
-                    null,  // No cancel option
-                    null,  // No destruction option
-                    "Easy Mode (8 guesses, with hints)",
-                    "Medium Mode (Standard 6 guesses)",
-                    "Hard Mode (4 guesses, must reuse correct letters)");
-
-                switch (difficultyChoice)
+                // Select difficulty before proceeding (except for Daily Challenge)
+                if (choice != "Daily Challenge")
                 {
-                    case "Easy Mode (8 guesses, with hints)":
-                        currentDifficulty = GameDifficulty.Easy;
-                        count = 1;
-                        MaxGuesses = 8;
-                        break;
-                    case "Medium Mode (Standard 6 guesses)":
-                        currentDifficulty = GameDifficulty.Medium;
-                        count = 1;
-                        MaxGuesses = 6;
-                        break;
-                    case "Hard Mode (4 guesses, must reuse correct letters)":
-                        currentDifficulty = GameDifficulty.Hard;
-                        count = 1;
-                        MaxGuesses = 4;
-                        break;
+                    string difficultyChoice = await DisplayActionSheet(
+                        "Select Difficulty",
+                        null,  // No cancel option
+                        null,  // No destruction option
+                        "Easy Mode (6 guesses, with hints)",
+                        "Medium Mode (Standard 6 guesses)",
+                        "Hard Mode (4 guesses, must reuse correct letters)");
+
+                    switch (difficultyChoice)
+                    {
+                        case "Easy Mode (6 guesses, with hints)":
+                            currentDifficulty = GameDifficulty.Easy;
+                            count = 1;
+                            MaxGuesses = 6;
+                            break;
+                        case "Medium Mode (Standard 6 guesses)":
+                            currentDifficulty = GameDifficulty.Medium;
+                            count = 1;
+                            MaxGuesses = 6;
+                            break;
+                        case "Hard Mode (4 guesses, must reuse correct letters)":
+                            currentDifficulty = GameDifficulty.Hard;
+                            count = 1;
+                            MaxGuesses = 4;
+                            break;
+                    }
                 }
 
                 // Initialize game first
                 await LoadWordsAsync();
-                SelectRandomWord();
-                gameStartTime = DateTime.Now;
 
-                // Rest of your existing switch statement for game type...
+                // Handle different game modes
                 switch (choice)
                 {
+                    case "Daily Challenge":
+                        await StartDailyChallenge();
+                        break;
+
                     case "Load Saved Game":
                         var players = await Player.GetExistingPlayers();
                         if (players.Count == 0)
@@ -169,7 +177,6 @@ namespace Wordle
                         }
                         break;
 
-                    // Continue Previous Game just uses existing save
                     case "Continue Previous Game":
                         var currentPlayer = await Player.GetPlayerName();
                         if (string.IsNullOrEmpty(currentPlayer))
@@ -189,13 +196,16 @@ namespace Wordle
                         break;
                 }
 
-                // Update UI to show current difficulty
+                // Update UI
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     ResetAllEntries();
                     ApplyTheme();
                     Row1Letter1?.Focus();
-                    ResultLabel.Text = $"Playing on {currentDifficulty} Mode";
+                    if (choice != "Daily Challenge")
+                    {
+                        ResultLabel.Text = $"Playing on {currentDifficulty} Mode";
+                    }
                 });
 
                 UpdateUIForDifficulty();
@@ -796,7 +806,7 @@ namespace Wordle
         {
             try
             {
-                won = isWon;  // Set the won status
+                won = isWon;
 
                 // Get current player name
                 string currentPlayer = await Player.GetPlayerName();
@@ -814,10 +824,28 @@ namespace Wordle
                     save.CurrentStreak = 0;
                 }
 
-                save.Save(currentPlayer);
+                // Create and add the game attempt
+                var attempt = new GameAttempt
+                {
+                    Word = targetWord,
+                    GuessCount = count,
+                    IsWin = isWon,
+                    Date = DateTime.Now,
+                    Difficulty = currentDifficulty,
+                    Guesses = GetGuessHistory()
+                };
 
-                // Add game attempt to history
-                save.History.AddAttempt(new GameAttempt(targetWord, count, GetGuessHistory()));
+                // Ensure History exists
+                if (save.History == null)
+                {
+                    save.History = new PlayerHistory { PlayerName = currentPlayer };
+                }
+
+                // Add attempt to history
+                save.History.AddAttempt(attempt);
+
+                // Save both the game stats and history
+                save.Save(currentPlayer);
 
                 if (isWon)
                 {
@@ -827,6 +855,7 @@ namespace Wordle
                 {
                     ResultLabel.Text = $"Bad luck! The word was {targetWord}";
                 }
+
                 DisableAllEntries();
 
                 // Check achievements
@@ -836,22 +865,31 @@ namespace Wordle
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in EndGame: {ex.Message}");
+                await DisplayAlert("Error", "Failed to save game progress", "OK");
             }
         }
 
+        // Helper method to get guess history
         private List<string> GetGuessHistory()
         {
-            var history = new List<string>();
+            var guesses = new List<string>();
             for (int row = 1; row <= count; row++)
             {
-                string guess = GetEntryText($"Row{row}Letter1") +
-                              GetEntryText($"Row{row}Letter2") +
-                              GetEntryText($"Row{row}Letter3") +
-                              GetEntryText($"Row{row}Letter4") +
-                              GetEntryText($"Row{row}Letter5");
-                history.Add(guess.ToUpper());
+                string guess = "";
+                for (int col = 1; col <= 5; col++)
+                {
+                    var entry = this.FindByName<Entry>($"Row{row}Letter{col}");
+                    if (entry != null)
+                    {
+                        guess += entry.Text?.ToUpper() ?? "";
+                    }
+                }
+                if (guess.Length == 5)
+                {
+                    guesses.Add(guess);
+                }
             }
-            return history;
+            return guesses;
         }
 
         private async void OnViewProgressClicked(object sender, EventArgs e)
@@ -1182,7 +1220,7 @@ namespace Wordle
             switch (currentDifficulty)
             {
                 case GameDifficulty.Easy:
-                    MaxGuesses = 8;
+                    MaxGuesses = 6;
                     hintsRemaining = 2;
                     HintButton.IsVisible = true;
                     ResultLabel.Text = $"Easy Mode: {hintsRemaining} hints remaining";
@@ -1237,7 +1275,7 @@ namespace Wordle
                     Title = "My Wordle Results"
                 });
             }
-            catch (Exception)
+            catch (Exception)  // Removed 'ex' since it wasn't being used
             {
                 await DisplayAlert("Error", "Failed to share results", "OK");
                 System.Diagnostics.Debug.WriteLine("Error sharing results");
@@ -1266,6 +1304,57 @@ namespace Wordle
             }
 
             return result.ToString();
+        }
+
+        private async Task StartDailyChallenge()
+        {
+            try
+            {
+                // Check if already played today
+                string todayKey = $"{DAILY_CHALLENGE_KEY}{DateTime.Today:yyyyMMdd}";
+                bool alreadyPlayed = Preferences.Default.Get(todayKey, false);
+
+                if (alreadyPlayed)
+                {
+                    await DisplayAlert("Daily Challenge",
+                        "You've already completed today's challenge!\nCome back tomorrow for a new word.",
+                        "OK");
+                    return;
+                }
+
+                // Reset game state for new challenge
+                isDailyChallenge = true;
+                await ResetGameState();
+
+                // Set daily word using date as seed
+                targetWord = GetDailyWord();
+
+                // Mark as played
+                Preferences.Default.Set(todayKey, true);
+
+                await DisplayAlert("Daily Challenge",
+                    "Starting today's challenge!\nYou only get one attempt per day - make it count!",
+                    "OK");
+
+                // Update UI to show it's a daily challenge
+                ResultLabel.Text = "🌟 Daily Challenge Mode 🌟";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in StartDailyChallenge: {ex.Message}");
+                await DisplayAlert("Error", "Failed to start daily challenge", "OK");
+            }
+        }
+
+        private string GetDailyWord()
+        {
+            // Use today's date as seed for consistent random number
+            var today = DateTime.Today;
+            var seed = today.Year * 10000 + today.Month * 100 + today.Day;
+            var random = new Random(seed);
+
+            // This ensures everyone gets the same word on the same day
+            return wordList[random.Next(wordList.Count)].ToUpper();
         }
     }
 
