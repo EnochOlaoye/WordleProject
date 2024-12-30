@@ -457,7 +457,11 @@ namespace Wordle
 
         private void ApplyTheme()
         {
+            // Set page background
             BackgroundColor = IsDarkMode ? darkModeBackground : lightModeBackground;
+
+            //Update title color with theme
+            TitleLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
 
             // Update theme labels
             LightModeLabel.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
@@ -488,6 +492,10 @@ namespace Wordle
                     }
                 }
             }
+            // Update SearchBar colors
+            WordSearchBar.TextColor = IsDarkMode ? darkModeForeground : lightModeForeground;
+            WordSearchBar.PlaceholderColor = IsDarkMode ? Colors.Gray : Colors.DarkGray;
+            WordSearchBar.BackgroundColor = IsDarkMode ? Colors.DarkGray : Colors.LightGray;
         }
 
         // Method to get all Entry controls from the UI
@@ -1355,6 +1363,47 @@ namespace Wordle
 
             // This ensures everyone gets the same word on the same day
             return wordList[random.Next(wordList.Count)].ToUpper();
+        }
+
+        private string GetRandomWord()
+        {
+            Random random = new Random();
+            return wordList[random.Next(wordList.Count)];
+
+        }
+
+        private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(e.NewTextValue))
+                {
+                    // Hide results if search is empty
+                    ResultLabel.Text = "Results will appear here";
+                    return;
+                }
+
+                // Search for matching words
+                var searchText = e.NewTextValue.ToUpper();
+                var matchingWords = wordList
+                    .Where(word => word.Contains(searchText))
+                    .Take(5)  // Limit to first 5 matches
+                    .ToList();
+
+                if (matchingWords.Any())
+                {
+                    ResultLabel.Text = $"Matching words:\n{string.Join(", ", matchingWords)}";
+                }
+                else
+                {
+                    ResultLabel.Text = "No matching words found";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Search error: {ex.Message}");
+                ResultLabel.Text = "Error searching words";
+            }
         }
     }
 
