@@ -4,8 +4,9 @@
              x:Class="Wordle.MainPage">
 
    <ScrollView>
-        <VerticalStackLayout Spacing="2" Padding="10">
-            <!-- Search bar at very top -->
+        <VerticalStackLayout Spacing="2" Padding="10"> <!-- Padding is set to 10 for better Game interface -->
+                     
+            <!-- Search bar for searchnig words --> 
             <SearchBar
                 x:Name="WordSearchBar"
                 Placeholder="Search words..."
@@ -13,7 +14,7 @@
                 HorizontalOptions="End"
                 WidthRequest="200"/>
 
-            <!-- Theme controls -->
+            <!-- Theme controls for the UI -->
             <HorizontalStackLayout HorizontalOptions="End" Spacing="5">
                 <Label Text="Dark Mode" 
                        x:Name="LightModeLabel"
@@ -22,32 +23,33 @@
                        x:Name="DarkModeLabel"
                        VerticalOptions="Center"/>
                 <ImageButton x:Name="ThemeButton"
-                            Source="lightbulb.png"
-                            HeightRequest="25"
-                            WidthRequest="25"
-                            Clicked="OnThemeToggleClicked"/>
+                             Source="lightbulb.png"
+                             HeightRequest="25"
+                             WidthRequest="25"
+                             Clicked="OnThemeToggleClicked"/>
             </HorizontalStackLayout>
 
-            <!-- WORDLE title moved down -->
+            <!-- Title of the game --> 
             <Label 
                 Text="WORDLE"
-                FontSize="24"
+                FontSize="24" 
                 FontAttributes="Bold"
                 HorizontalOptions="Center"
                 Margin="0,-10,0,20"
                 x:Name="TitleLabel"/>
 
-            <!-- Results Area -->
+            <!-- Results Button --> 
             <Button x:Name="ResultLabel"
                     Text="Results will appear here"
                     HorizontalOptions="Center"
                     Margin="0,0,0,10"/>
 
             <!-- First Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border1Letter1" StrokeThickness="2" Stroke="Gray" 
-                        WidthRequest="60" HeightRequest="60">
-                    <Entry x:Name="Row1Letter1"
+                        WidthRequest="60" HeightRequest="60"> 
+                    <Entry x:Name="Row1Letter1" 
                            AutomationId="Row1Letter1"
                            MaxLength="1"
                            TextChanged="OnFirstBoxTextChanged"
@@ -118,6 +120,7 @@
             </HorizontalStackLayout>
 
             <!-- Second Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border2Letter1" StrokeThickness="2" Stroke="Gray" 
                         WidthRequest="60" HeightRequest="60">
@@ -162,7 +165,7 @@
                            WidthRequest="40"/>
                 </Border>
                 <Border x:Name="Border2Letter4" StrokeThickness="2" Stroke="Gray" 
-                        WidthRequest="60" HeightRequest="60">
+                        WidthRequest="60" HeightRequest="60"> 
                     <Entry x:Name="Row2Letter4"
                            MaxLength="1" 
                            TextChanged="OnTextChanged"
@@ -192,6 +195,7 @@
             </HorizontalStackLayout>
 
             <!-- Thrid Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border3Letter1" StrokeThickness="2" Stroke="Gray" 
                         WidthRequest="60" HeightRequest="60">
@@ -266,6 +270,7 @@
             </HorizontalStackLayout>
 
             <!-- Fourth Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border4Letter1" StrokeThickness="2" Stroke="Gray" 
                         WidthRequest="60" HeightRequest="60">
@@ -340,6 +345,7 @@
             </HorizontalStackLayout>
 
             <!-- Fifth Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border5Letter1" StrokeThickness="2" Stroke="Gray" 
                         WidthRequest="60" HeightRequest="60">
@@ -414,6 +420,7 @@
             </HorizontalStackLayout>
 
             <!-- Sixth Row -->
+            <!-- Spacing is set 10 and HorizontalOptions is Centre for better UI Experience -->
             <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
                 <Border x:Name="Border6Letter1" StrokeThickness="2" Stroke="Gray" 
                         WidthRequest="60" HeightRequest="60">
@@ -487,44 +494,43 @@
                 </Border>
             </HorizontalStackLayout>
 
-            <!-- Game Control Buttons at bottom -->
+            <!-- Game Control Buttons --> 
             <StackLayout Orientation="Horizontal" 
-                     HorizontalOptions="Center" 
-                     Spacing="10">
-                <Button 
-                x:Name="SubmitButton"
-                Text="Submit Guess"
-                Clicked="OnSubmitGuessClicked"/>
+                         HorizontalOptions="Center" 
+                         Spacing="10">
+                <Button                    
+                    x:Name="SubmitButton" 
+                    Text="Submit Guess"
+                    Clicked="OnSubmitGuessClicked"/>
 
                 <Button 
-                x:Name="NewGameButton"
-                Text="New Game"
-                Clicked="OnNewGameClicked"/>
+                    x:Name="NewGameButton"
+                    Text="New Game"
+                    Clicked="OnNewGameClicked"/>
 
                 <Button Text="View Progress"
-                    Clicked="OnViewProgressClicked"
-                    HorizontalOptions="Center"
-                    Margin="10"/>
+                        Clicked="OnViewProgressClicked"
+                        HorizontalOptions="Center"
+                        Margin="10"/>
 
                 <Button x:Name="HintButton" 
-                    Text="Get Hint" 
-                    Clicked="OnHintButtonClicked"
-                    IsVisible="False"
-                    Margin="10"/>
+                        Text="Get Hint" 
+                        Clicked="OnHintButtonClicked"
+                        IsVisible="False"
+                        Margin="10"/>
 
                 <Button x:Name="ExitButton" 
-                    Text="Exit Game" 
-                    Clicked="OnExitButtonClicked"
-                    BackgroundColor="Red"
-                    TextColor="White"
-                    Margin="10"/>
+                        Text="Exit Game" 
+                        Clicked="OnExitButtonClicked"
+                        BackgroundColor="Red"
+                        TextColor="White"
+                        Margin="10"/>
 
                 <Button Text="Share Results" 
-                Clicked="OnShareResultsClicked"
-                IsEnabled="{Binding IsGameOver}"/>
+                        Clicked="OnShareResultsClicked"
+                        IsEnabled="{Binding IsGameOver}"/>
 
-               
-            </StackLayout>
-        </VerticalStackLayout>
+            </StackLayout> 
+        </VerticalStackLayout> 
     </ScrollView>
 </ContentPage>

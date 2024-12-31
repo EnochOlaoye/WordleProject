@@ -3,8 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Wordle.SaveGamePage">
     <ScrollView>
-        <VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center">
-
+        <VerticalStackLayout Spacing="25" Padding="30,0" VerticalOptions="Center"> <!-- VerticalStackLayout is used to stack the elements vertically -->
+            
+            <!-- Page Title and Player Progress and Statistics Buttons  -->
             <Label
                 x:Name="PlayerNameLabel"
                 Text="Player: "
@@ -88,7 +89,8 @@
                 SemanticProperties.HeadingLevel="Level2"
                 FontSize="18"
                 HorizontalOptions="Center" />
-
+            
+            <!-- CollectionView to display the game history -->
             <CollectionView
                 x:Name="HistoryList"
                 SelectionMode="None"
@@ -127,6 +129,7 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <!--  The theme toggle button is a horizontal stack layout containing two labels and an image Dark and Light icons -->
             <HorizontalStackLayout HorizontalOptions="Center">
                 <Label
                     x:Name="LightModeLabel"
@@ -149,13 +152,14 @@
                 </Image>
             </HorizontalStackLayout>
 
+            <!-- Back to Game Button -->
             <Button
                 Text="Back to Game"
                 SemanticProperties.Hint="Returns to the game"
                 Clicked="OnBackToGameClicked"
                 HorizontalOptions="Center" />
 
-            <!-- Add this button above or below the Reset Button -->
+            <!-- Save Game Button -->
             <Button 
                 x:Name="ManagePlayersButton"
                 Text="Manage Saved Games"
